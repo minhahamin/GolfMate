@@ -6,6 +6,6 @@ DB 스키마가 바뀌어도 API 계약을 독립적으로 관리할 수 있다.
 
 - `user.py` — `UserRead` (비밀번호 필드 제외)
 - `golfer_profile.py` — `GolferProfileRead`, `GolferProfileUpdate`
+- `auth.py` — `UserCreate`(회원가입 입력), `UserLogin`, `AuthResponse`(토큰+`UserRead`)
 
-명명 규칙: `XxxCreate` / `XxxUpdate` / `XxxRead`. Phase 2부터 Auth 관련 스키마
-(`UserCreate`, `Token` 등)가 추가된다.
+명명 규칙: `XxxCreate` / `XxxUpdate` / `XxxRead`.

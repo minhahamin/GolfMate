@@ -14,7 +14,11 @@ class Settings(BaseSettings):
 
     app_env: str = "local"
     database_url: str = "postgresql+psycopg2://golfmate:golfmate@localhost:5432/golfmate"
-    cors_origins: str = "http://localhost:5173"
+    cors_origins: str = "http://localhost:5180"
+
+    jwt_secret_key: str = "dev-only-secret-change-me"
+    jwt_algorithm: str = "HS256"
+    jwt_expire_minutes: int = 60 * 24
 
     @property
     def cors_origin_list(self) -> list[str]:

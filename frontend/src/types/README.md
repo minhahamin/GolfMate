@@ -6,3 +6,4 @@
 ## 현재
 
 - `health.ts` — `HealthStatus` (`GET /api/health/db` 응답)
+- `auth.ts` — `User`, `AuthResponse`, `GolferProfile`, `GolferProfileUpdate`

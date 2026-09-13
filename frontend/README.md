@@ -29,8 +29,8 @@ npm install --no-save @rolldown/binding-win32-x64-msvc
 
 Docker Compose로 실행하면 `node:20-alpine` 이미지가 최신 20.x 패치를 쓰므로 이 문제를 겪지 않는다.
 
-`http://localhost:5180` 접속 시 백엔드(`/api/health/db`) 연결 상태를 보여주는
-Phase 1 시스템 상태 페이지가 뜬다.
+`http://localhost:5180` 접속 시 로그인 여부에 따라 `/login` 또는 `/dashboard`로 이동한다.
+Phase 1의 인프라 점검용 페이지는 `/status`에 남아있다.
 
 ## Docker Compose로 실행
 
@@ -49,7 +49,8 @@ IPv6(`::1`)로 먼저 해석해 엉뚱한 서버로 연결될 수 있다. GolfMa
 | 경로 | 역할 |
 |---|---|
 | `src/pages/` | 라우트 단위 화면 |
-| `src/components/` | 여러 페이지에서 재사용하는 UI 조각 |
+| `src/components/` | 여러 페이지에서 재사용하는 UI 조각 (ProtectedRoute 등) |
+| `src/context/` | 전역 클라이언트 상태 (로그인한 사용자) |
 | `src/api/` | axios 클라이언트, 백엔드 호출 함수 |
 | `src/hooks/` | React Query 기반 커스텀 훅 |
 | `src/types/` | 백엔드 응답과 대응하는 TypeScript 타입 |

@@ -28,8 +28,19 @@ docker compose exec backend alembic upgrade head
 
 ## 테스트
 
+DB가 필요 없는 테스트(`test_health.py`)는 로컬 venv에서 바로 실행된다:
+
 ```bash
 pytest
+```
+
+`test_auth.py`처럼 실제 PostgreSQL 연결이 필요한 테스트는 Docker 컨테이너 안에서 실행한다
+(Windows 로컬 venv의 psycopg2가 환경변수를 파싱하다 `UnicodeDecodeError`를 내는 경우가 있어,
+컨테이너 안에서 실행하는 쪽이 더 안정적이다):
+
+```bash
+docker compose exec backend pip install pytest httpx   # requirements-dev만 추가 설치
+docker compose exec backend pytest
 ```
 
 ## 디렉터리

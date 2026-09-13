@@ -75,7 +75,7 @@ Phase 1에서는 `users`, `golfer_profiles`만 구현되어 있습니다. 나머
 | Phase | 내용 | 상태 |
 |---|---|---|
 | 1 | 프로젝트 기본 구조 (React+FastAPI+PostgreSQL+Docker) | ✅ 완료 |
-| 2 | 회원가입/로그인 (JWT), Golfer Profile | 예정 |
+| 2 | 회원가입/로그인 (JWT), Golfer Profile | ✅ 완료 |
 | 3 | 골프 데이터 (Course/Round/Hole/Statistics) — AI 없이 먼저 동작 | 예정 |
 | 4 | AI Coach (LangChain/LangGraph) | 예정 |
 | 5 | RAG (골프 지식, pgvector) | 예정 |
@@ -85,16 +85,20 @@ Phase 1에서는 `users`, `golfer_profiles`만 구현되어 있습니다. 나머
 | 9 | Golf Bet Analysis (그룹/정산/AI Commentary) | 예정 |
 | 10 | Langfuse (Tracing/Prompt Management/Evaluation) | 예정 |
 
-## 현재 상태 (Phase 1)
+## 현재 상태 (Phase 2까지)
 
 - FastAPI 앱과 PostgreSQL이 Docker Compose로 연결되고, `GET /api/health/db`가 실제 DB
   커넥션을 확인합니다.
 - `User`, `GolferProfile` 테이블이 Alembic 마이그레이션으로 생성됩니다.
-- React 앱이 React Query로 백엔드 헬스체크를 폴링하여 연결 상태를 화면에 표시합니다
-  (`/` — `SystemStatus` 페이지).
 - Router → Service → Repository → AI Layer로 이어지는 백엔드 레이어 구조와, 이후 AI 기능이
   들어갈 `app/ai/` 자리를 미리 스캐폴딩해두었습니다 (자세한 설계 메모는
   [`backend/app/ai/README.md`](backend/app/ai/README.md) 참고).
+- 회원가입/로그인이 JWT(`pyjwt`) + 비밀번호 해싱(`bcrypt`)으로 동작합니다. 가입 시 빈
+  `GolferProfile`이 함께 생성되고, 로그인한 사용자만 `/api/users/me`, `/api/users/me/profile`에
+  접근할 수 있습니다 (`get_current_user` 의존성이 유일한 인증 관문).
+- React 앱은 `localStorage`에 JWT를 저장하고 axios 인터셉터로 자동 첨부합니다. `/login`,
+  `/register`, 보호된 `/dashboard`(사용자 정보 + 골퍼 프로필 편집)가 동작하며, 미인증 접근은
+  `/login`으로 리다이렉트됩니다. Phase 1의 인프라 점검 페이지는 `/status`에 남아있습니다.
 
 ## 실행 방법
 
