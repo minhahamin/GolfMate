@@ -4,6 +4,10 @@
 > AI 골프일기·내기 분석을 제공하는 **AI 골프 플랫폼**. 단발성 응답을 만드는 챗봇이 아니라,
 > 사용자 데이터가 쌓일수록 더 정확해지는 서비스를 목표로 한 개인 포트폴리오 프로젝트입니다.
 
+**🔗 라이브 데모**: https://golfmate-frontend-production.up.railway.app
+(로그인 화면의 "데모 계정으로 체험하기" 버튼으로 가입 없이 바로 둘러볼 수 있습니다 —
+라운드 8개가 미리 채워져 있어 통계/차트가 바로 보입니다.)
+
 ## 왜 이 프로젝트인가
 
 "LLM API를 감싼 챗봇"은 만들기 쉽지만 실제 제품 가치를 증명하기 어렵습니다. GolfMate AI는
@@ -67,8 +71,8 @@ users ──1:N── ai_sessions ──1:N── ai_messages / ai_recommendatio
 golf_knowledge (pgvector, RAG 전용)
 ```
 
-Phase 1에서는 `users`, `golfer_profiles`만 구현되어 있습니다. 나머지 테이블은 해당 기능이
-구현되는 Phase에서 순차적으로 추가됩니다.
+`users`, `golfer_profiles`, `courses`, `course_holes`, `rounds`, `holes`까지 구현되어
+있습니다. 나머지 테이블은 해당 기능이 구현되는 Phase에서 순차적으로 추가됩니다.
 
 ## 개발 로드맵
 
@@ -76,7 +80,7 @@ Phase 1에서는 `users`, `golfer_profiles`만 구현되어 있습니다. 나머
 |---|---|---|
 | 1 | 프로젝트 기본 구조 (React+FastAPI+PostgreSQL+Docker) | ✅ 완료 |
 | 2 | 회원가입/로그인 (JWT), Golfer Profile | ✅ 완료 |
-| 3 | 골프 데이터 (Course/Round/Hole/Statistics) — AI 없이 먼저 동작 | 예정 |
+| 3 | 골프 데이터 (Course/Round/Hole/Statistics) — AI 없이 먼저 동작 | ✅ 완료 |
 | 4 | AI Coach (LangChain/LangGraph) | 예정 |
 | 5 | RAG (골프 지식, pgvector) | 예정 |
 | 6 | AI Golf Diary (STT + Structured Extraction) | 예정 |
@@ -85,20 +89,42 @@ Phase 1에서는 `users`, `golfer_profiles`만 구현되어 있습니다. 나머
 | 9 | Golf Bet Analysis (그룹/정산/AI Commentary) | 예정 |
 | 10 | Langfuse (Tracing/Prompt Management/Evaluation) | 예정 |
 
-## 현재 상태 (Phase 2까지)
+## 현재 상태 (Phase 3까지)
 
-- FastAPI 앱과 PostgreSQL이 Docker Compose로 연결되고, `GET /api/health/db`가 실제 DB
-  커넥션을 확인합니다.
-- `User`, `GolferProfile` 테이블이 Alembic 마이그레이션으로 생성됩니다.
+- FastAPI 앱과 PostgreSQL이 Docker Compose(로컬)와 Railway(배포)로 연결되고,
+  `GET /api/health/db`가 실제 DB 커넥션을 확인합니다.
 - Router → Service → Repository → AI Layer로 이어지는 백엔드 레이어 구조와, 이후 AI 기능이
   들어갈 `app/ai/` 자리를 미리 스캐폴딩해두었습니다 (자세한 설계 메모는
   [`backend/app/ai/README.md`](backend/app/ai/README.md) 참고).
 - 회원가입/로그인이 JWT(`pyjwt`) + 비밀번호 해싱(`bcrypt`)으로 동작합니다. 가입 시 빈
-  `GolferProfile`이 함께 생성되고, 로그인한 사용자만 `/api/users/me`, `/api/users/me/profile`에
-  접근할 수 있습니다 (`get_current_user` 의존성이 유일한 인증 관문).
+  `GolferProfile`이 함께 생성되고, 로그인한 사용자만 `/api/users/me`, `/api/rounds/*` 등
+  본인 데이터에만 접근할 수 있습니다 (`get_current_user` 의존성이 유일한 인증 관문 — 다른
+  사용자의 라운드는 403이 아닌 404로 응답해 존재 자체를 숨긴다).
+- 골프장(Course/CourseHole)과 라운드(Round/Hole) CRUD가 동작합니다. 라운드 등록 시 홀별
+  상세를 입력하면 총타수를 서버가 홀 점수 합으로 계산하고, `statistics_service.py`가 순수
+  Python으로 평균 스코어·퍼팅·페어웨이·GIR 등을 계산합니다 (LLM 호출 없음 — 이 계산 로직을
+  Phase 4 AI Coach가 그대로 재사용할 예정).
 - React 앱은 `localStorage`에 JWT를 저장하고 axios 인터셉터로 자동 첨부합니다. `/login`,
-  `/register`, 보호된 `/dashboard`(사용자 정보 + 골퍼 프로필 편집)가 동작하며, 미인증 접근은
-  `/login`으로 리다이렉트됩니다. Phase 1의 인프라 점검 페이지는 `/status`에 남아있습니다.
+  `/register`, 보호된 `/dashboard`(통계 요약+Recharts 트렌드 차트), `/rounds`,
+  `/rounds/new`(18홀 상세 입력 지원), `/rounds/:id`(분석 통계), `/courses`, `/profile`이
+  동작합니다. 미인증 접근은 `/login`으로 리다이렉트됩니다.
+- 회원가입 없이 바로 체험할 수 있는 데모 계정(`demo@golfmate.ai`, 라운드 8개 미리 시드됨)이
+  로그인 화면에 있습니다.
+
+## 배포 (Railway)
+
+백엔드/프론트엔드/PostgreSQL을 별도 서비스 3개로 분리 배포했습니다 (모노레포라 루트에서
+자동 빌드가 안 되므로, 각 서비스는 `backend/`, `frontend/`를 루트로 CLI(`railway up --path-as-root`)로
+배포합니다).
+
+| 서비스 | 내용 |
+|---|---|
+| `GolfMate` (backend) | `backend/Dockerfile` — 부팅 시 마이그레이션+코스+데모계정 시드 자동 실행 |
+| `golfmate-frontend` | `frontend/Dockerfile`(운영용, nginx 정적 서빙) — 로컬 개발은 `Dockerfile.dev` 사용 |
+| `Postgres` | Railway 플러그인 |
+
+프론트는 빌드 시점에 `VITE_API_BASE_URL`을 백엔드 공개 URL로 굽고, 백엔드 `CORS_ORIGINS`는
+프론트 공개 URL을 허용하도록 설정되어 있습니다.
 
 ## 실행 방법
 

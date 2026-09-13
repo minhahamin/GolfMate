@@ -7,6 +7,9 @@
   지운다.
 - `auth.ts` — `register()`, `login()` (둘 다 `AuthResponse` 반환)
 - `users.ts` — `getMe()`, `getMyProfile()`, `updateMyProfile()`
+- `courses.ts` — `listCourses()`, `getCourse(id)`
+- `rounds.ts` — `listRounds()`, `createRound()`, `getRound(id)`, `updateRound(id)`,
+  `deleteRound(id)`, `getRoundAnalysis(id)`, `getStatisticsSummary(limit)`
 
 각 파일은 `apiClient`를 이용해 실제 HTTP 호출만 담당한다 (에러 처리/캐싱은 `hooks/`에서,
 로그인 상태 반영은 `context/AuthContext.tsx`에서).

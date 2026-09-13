@@ -14,6 +14,8 @@ pip install -r requirements-dev.txt
 cp .env.example .env          # DATABASE_URL을 localhost 기준으로 수정
 
 alembic upgrade head          # 테이블 생성
+python -m app.seed_courses       # mock 골프장 3개 시드
+python -m app.seed_demo_account  # 데모 계정(demo@golfmate.ai) + 라운드 8개 시드
 uvicorn app.main:app --reload --port 8010
 ```
 
@@ -23,8 +25,28 @@ uvicorn app.main:app --reload --port 8010
 
 ```bash
 docker compose up --build
-docker compose exec backend alembic upgrade head
 ```
+
+컨테이너 시작 시 마이그레이션, 코스 시드, 데모 계정 시드를 자동으로 실행한다
+(`Dockerfile`의 CMD 참고 — 모두 멱등적이라 매번 실행해도 안전하다). 별도로 실행할 필요 없다.
+로그인 화면의 "데모 계정으로 체험하기" 버튼이 이 계정(`demo@golfmate.ai`)으로 바로 로그인한다.
+
+## Railway 배포
+
+모노레포라 루트에서 자동 빌드가 안 되므로 `backend/`를 root로 CLI 업로드 배포한다:
+
+```bash
+railway up backend --path-as-root --service GolfMate --ci
+railway variable set "DATABASE_URL=${{Postgres.DATABASE_URL}}" --service GolfMate
+railway variable set "JWT_SECRET_KEY=<openssl rand -hex 32 등으로 생성>" --service GolfMate
+railway variable set "JWT_ALGORITHM=HS256" --service GolfMate
+railway variable set "JWT_EXPIRE_MINUTES=1440" --service GolfMate
+railway variable set "CORS_ORIGINS=<프론트 공개 URL>" --service GolfMate
+railway domain --service GolfMate --port 8000
+```
+
+컨테이너 부팅 시 `Dockerfile`의 CMD가 마이그레이션/코스 시드/데모 계정 시드를 자동 실행하므로
+별도 원격 명령이 필요 없다.
 
 ## 테스트
 
@@ -52,8 +74,10 @@ docker compose exec backend pytest
 | `app/models/` | SQLAlchemy ORM 모델 |
 | `app/schemas/` | Pydantic 요청/응답 스키마 |
 | `app/api/routers/` | HTTP 엔드포인트 (얇은 계층, 비즈니스 로직 없음) |
-| `app/services/` | 비즈니스 로직 (Phase 2+) |
-| `app/repositories/` | DB 접근 계층 (Phase 2+) |
+| `app/services/` | 비즈니스 로직 (인증, 라운드, 통계 계산 등) |
+| `app/repositories/` | DB 접근 계층 |
+| `app/seed_courses.py` | mock 골프장 3개 시드 스크립트 |
+| `app/seed_demo_account.py` | 데모 계정 + 라운드 8개 시드 스크립트 |
 | `app/ai/` | LangGraph/Agent/RAG (Phase 4+) |
 | `alembic/` | DB 마이그레이션 |
 | `tests/` | Pytest 테스트 |

@@ -1,0 +1,14 @@
+# 로컬 개발 전용 (docker-compose가 사용). Vite dev server로 핫 리로드를 지원한다.
+# 프로덕션 배포(Railway 등)는 nginx 정적 서빙용 ./Dockerfile을 쓴다.
+FROM node:20-alpine
+
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+RUN npm install
+
+COPY . .
+
+EXPOSE 5180
+
+CMD ["npm", "run", "dev", "--", "--host"]

@@ -44,6 +44,19 @@ IPv6(`::1`)로 먼저 해석해 엉뚱한 서버로 연결될 수 있다. GolfMa
 포트를 써서 이 문제를 피하지만, 그래도 겹친다면 `.env`의 `BACKEND_PORT`/`FRONTEND_PORT`와
 `frontend/.env`의 `VITE_API_BASE_URL`을 함께 바꾼다.
 
+## Railway 배포
+
+`Dockerfile`(운영용, nginx 정적 서빙)과 `Dockerfile.dev`(로컬 dev server, docker-compose가
+사용)를 분리해뒀다 — Railway는 기본 파일명 `Dockerfile`을 찾으므로 별도 설정이 필요 없다.
+Vite는 빌드 시점에 환경변수를 번들에 굽기 때문에 `VITE_API_BASE_URL`을 **빌드 전에** 설정해야
+한다:
+
+```bash
+railway variable set "VITE_API_BASE_URL=<백엔드 공개 URL>" --service golfmate-frontend --skip-deploys
+railway up frontend --path-as-root --service golfmate-frontend --ci
+railway domain --service golfmate-frontend --port 80
+```
+
 ## 디렉터리
 
 | 경로 | 역할 |

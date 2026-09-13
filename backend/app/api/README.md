@@ -14,8 +14,18 @@
   - `GET /api/users/me` — 내 계정 정보
   - `GET /api/users/me/profile` — 내 골퍼 프로필
   - `PUT /api/users/me/profile` — 내 골퍼 프로필 부분 수정
+- `routers/courses.py` (공개, 인증 불필요)
+  - `GET /api/courses` — 골프장 목록
+  - `GET /api/courses/{course_id}` — 골프장 상세(홀별 파/거리 포함)
+- `routers/rounds.py` (모두 `get_current_user` 의존, 본인 라운드만 접근 가능)
+  - `GET /api/rounds` — 내 라운드 목록
+  - `POST /api/rounds` — 라운드 생성 (홀 상세를 보내면 score를 서버가 합산 계산)
+  - `GET /api/rounds/{round_id}` / `PUT` / `DELETE` — 상세/수정/삭제 (다른 사용자 것은 404)
+  - `GET /api/rounds/{round_id}/analysis` — 해당 라운드 통계 (순수 계산, LLM 없음)
+  - `GET /api/rounds/statistics/summary` — 최근 N라운드 집계 통계
+    (라우트 순서 주의: `{round_id}`보다 먼저 등록해야 "statistics"가 id로 오인되지 않는다)
 
 ## 앞으로 추가될 라우터 (마스터 스펙 §20 기준)
 
-`rounds`, `ai` (coach/caddie), `courses`, `diaries`, `groups`, `bets`.
+`ai` (coach/caddie), `diaries`, `groups`, `bets`.
 각 라우터는 요청 검증 → service 호출 → 응답 반환만 담당하고, 비즈니스 로직은 갖지 않는다.

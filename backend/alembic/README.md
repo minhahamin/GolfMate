@@ -17,3 +17,5 @@ alembic upgrade head
 ## 현재 리비전
 
 - `20260913_233226_create_users_and_golfer_profiles.py` — `users`, `golfer_profiles` 테이블 생성.
+- `20260914_003022_create_courses_rounds_holes.py` — `courses`, `course_holes`, `rounds`,
+  `holes` 테이블 생성.

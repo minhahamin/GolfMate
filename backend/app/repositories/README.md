@@ -7,6 +7,9 @@ Service는 SQLAlchemy Session이나 쿼리문을 직접 다루지 않고, 이 �
 
 - `user_repository.py` — `get_by_email`, `get_by_id`, `create`
 - `golfer_profile_repository.py` — `get_by_user_id`, `create_empty`, `update`
+- `course_repository.py` — `list_all`, `get_by_id`(홀 목록까지 eager load)
+- `round_repository.py` — `list_by_user`, `list_recent_by_user`(통계용, 홀 eager load),
+  `get_by_id_for_user`(**반드시 user_id로 필터** — 다른 사용자 라운드는 절대 반환하지 않는다),
+  `create`, `replace_holes`, `update_fields`, `delete`
 
 클래스가 아니라 모듈 함수로 작성한다 (상태를 갖지 않으므로 클래스로 감쌀 이유가 없다).
-Round, Course 등 Phase 3+ 도메인이 추가되면 같은 패턴으로 `round_repository.py` 등을 둔다.
