@@ -11,7 +11,7 @@ python -m venv .venv
 .venv\Scripts\activate        # Windows
 pip install -r requirements-dev.txt
 
-cp .env.example .env          # DATABASE_URL을 localhost 기준으로 수정
+cp .env.example .env          # DATABASE_URL을 localhost 기준으로 수정, OPENROUTER_API_KEY 채우기
 
 alembic upgrade head          # 테이블 생성
 python -m app.seed_courses       # mock 골프장 3개 시드
@@ -42,6 +42,7 @@ railway variable set "JWT_SECRET_KEY=<openssl rand -hex 32 등으로 생성>" --
 railway variable set "JWT_ALGORITHM=HS256" --service GolfMate
 railway variable set "JWT_EXPIRE_MINUTES=1440" --service GolfMate
 railway variable set "CORS_ORIGINS=<프론트 공개 URL>" --service GolfMate
+railway variable set "OPENROUTER_API_KEY=<https://openrouter.ai/keys 에서 발급>" --service GolfMate
 railway domain --service GolfMate --port 8000
 ```
 
@@ -78,6 +79,6 @@ docker compose exec backend pytest
 | `app/repositories/` | DB 접근 계층 |
 | `app/seed_courses.py` | mock 골프장 3개 시드 스크립트 |
 | `app/seed_demo_account.py` | 데모 계정 + 라운드 8개 시드 스크립트 |
-| `app/ai/` | LangGraph/Agent/RAG (Phase 4+) |
+| `app/ai/` | LangGraph AI Coach (Phase 4), RAG/Caddie 등은 Phase 5+ |
 | `alembic/` | DB 마이그레이션 |
 | `tests/` | Pytest 테스트 |

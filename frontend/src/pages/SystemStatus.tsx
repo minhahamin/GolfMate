@@ -4,33 +4,26 @@ export default function SystemStatus() {
   const { data, isLoading, isError, error } = useHealthCheck();
 
   return (
-    <main className="min-h-screen flex items-center justify-center px-4">
-      <div className="w-full max-w-md rounded-2xl border border-emerald-800/40 bg-emerald-950/40 p-8 shadow-xl">
-        <p className="text-sm uppercase tracking-widest text-emerald-400">GolfMate AI</p>
-        <h1 className="mt-1 text-2xl font-semibold text-emerald-50">시스템 연결 상태</h1>
-        <p className="mt-1 text-sm text-emerald-200/70">
-          React → FastAPI → PostgreSQL 연결을 확인합니다.
-        </p>
+    <main className="flex min-h-screen items-center justify-center bg-paper px-4">
+      <div className="w-full max-w-md border border-ink/15 p-8">
+        <h1 className="font-display text-2xl text-ink">시스템 연결 상태</h1>
+        <p className="mt-1 text-sm text-ink-soft">React → FastAPI → PostgreSQL 연결을 확인합니다.</p>
 
-        <div className="mt-6 flex items-center gap-3 rounded-lg bg-black/20 p-4">
+        <div className="mt-6 flex items-center gap-3 border border-ink/15 bg-paper-2 p-4">
           <span
-            className={`h-3 w-3 rounded-full ${
-              isLoading
-                ? 'bg-yellow-400 animate-pulse'
-                : isError
-                  ? 'bg-red-500'
-                  : 'bg-emerald-400'
+            className={`h-2.5 w-2.5 rounded-full ${
+              isLoading ? 'bg-sand animate-pulse' : isError ? 'bg-flag' : 'bg-fairway'
             }`}
           />
-          <span className="text-sm text-emerald-50">
+          <span className="text-sm text-ink">
             {isLoading && '연결 확인 중...'}
             {isError && `연결 실패: ${(error as Error).message}`}
             {data && `정상 — status: ${data.status}, database: ${data.database}`}
           </span>
         </div>
 
-        <p className="mt-6 text-xs text-emerald-200/50">
-          Phase 1 — 기본 인프라 연결 확인 페이지. 다음 Phase에서 로그인/대시보드로 대체됩니다.
+        <p className="mt-6 text-xs text-ink-soft">
+          인프라 연결 확인용 페이지입니다.
         </p>
       </div>
     </main>

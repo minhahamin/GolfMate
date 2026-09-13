@@ -10,6 +10,8 @@
 - `test_courses.py` — 골프장 목록/상세/404 테스트.
 - `test_rounds.py` — 라운드 CRUD, 홀 점수 합산으로 score 자동 계산, 통계(`analysis`,
   `statistics/summary`) 계산, 소유권(다른 사용자 라운드 접근 시 404) 테스트.
+- `test_coach.py` — AI Coach 엔드포인트. `get_coach_llm`을 모킹해 실제 OpenRouter 호출
+  없이 데이터 없음/정상 응답 파싱/LLM 실패 시 폴백을 검증한다 (비용·네트워크 의존 없음).
 - `conftest.py` — 위 테스트들이 공유하는 헬퍼: `register_and_get_token`, `auth_headers`,
   `seed_test_course`(홀 3개짜리 테스트 전용 코스 생성).
 
@@ -24,7 +26,7 @@ DELETE FROM courses WHERE name LIKE '테스트코스-%';
 
 ## Phase별 확장 계획 (마스터 스펙 §28)
 
-- Phase 4+: AI API의 입출력 검증, Tool calling, RAG retrieval, LangGraph 라우팅
+- Phase 5+: Tool calling, RAG retrieval, LangGraph 라우팅 (더 복잡한 그래프가 생기면)
 - 특히 **골프 내기 금액/승패 계산은 LLM이 아닌 일반 코드로 테스트**한다 (§29 원칙).
 
 ## 실행

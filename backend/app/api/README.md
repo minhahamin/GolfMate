@@ -25,7 +25,11 @@
   - `GET /api/rounds/statistics/summary` — 최근 N라운드 집계 통계
     (라우트 순서 주의: `{round_id}`보다 먼저 등록해야 "statistics"가 id로 오인되지 않는다)
 
+- `routers/coach.py` (`get_current_user` 의존)
+  - `POST /api/ai/coach` — 최근 라운드 기반 AI 코칭 분석 (LangGraph, `app/ai/coach/graph.py`).
+    응답은 항상 200이며, 데이터 없음/LLM 실패도 폴백 메시지로 200 응답에 담긴다 (§29).
+
 ## 앞으로 추가될 라우터 (마스터 스펙 §20 기준)
 
-`ai` (coach/caddie), `diaries`, `groups`, `bets`.
+`ai/caddie`, `diaries`, `groups`, `bets`.
 각 라우터는 요청 검증 → service 호출 → 응답 반환만 담당하고, 비즈니스 로직은 갖지 않는다.

@@ -10,3 +10,4 @@
 - `course.ts` — `Course`, `CourseHole`, `CourseDetail`
 - `round.ts` — `HoleInput`/`HoleRead`, `Round`/`RoundListItem`, `RoundCreatePayload`/
   `RoundUpdatePayload`, `RoundAnalysis`, `StatisticsSummary`
+- `coach.ts` — `CoachResponse` (5개 섹션)

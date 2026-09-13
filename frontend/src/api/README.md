@@ -10,6 +10,9 @@
 - `courses.ts` — `listCourses()`, `getCourse(id)`
 - `rounds.ts` — `listRounds()`, `createRound()`, `getRound(id)`, `updateRound(id)`,
   `deleteRound(id)`, `getRoundAnalysis(id)`, `getStatisticsSummary(limit)`
+- `coach.ts` — `postCoachAnalysis(question)`. LLM 호출이라 몇 초 이상 걸릴 수 있어
+  `apiClient`의 기본 타임아웃(5초)을 30초로 오버라이드해서 호출한다 — 새로 LLM을 부르는
+  API를 추가할 때는 이 패턴을 따른다.
 
 각 파일은 `apiClient`를 이용해 실제 HTTP 호출만 담당한다 (에러 처리/캐싱은 `hooks/`에서,
 로그인 상태 반영은 `context/AuthContext.tsx`에서).

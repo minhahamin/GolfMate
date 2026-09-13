@@ -11,5 +11,7 @@ DB 스키마가 바뀌어도 API 계약을 독립적으로 관리할 수 있다.
 - `round.py` — `HoleInput`/`HoleRead`, `RoundCreate`/`RoundUpdate`/`RoundListItem`/`RoundRead`,
   `RoundAnalysis`(라운드 통계), `StatisticsSummary`(최근 N라운드 집계). `RoundCreate`는
   `score` 또는 `holes` 중 하나는 반드시 있어야 한다는 검증(`model_validator`)을 가진다.
+- `coach.py` — `CoachRequest`(질문, 선택), `CoachResponse`(5개 섹션: current_state,
+  biggest_problem, cause, strategy, next_goal)
 
 명명 규칙: `XxxCreate` / `XxxUpdate` / `XxxRead`.

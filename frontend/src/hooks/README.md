@@ -15,5 +15,7 @@
   페이지로 이동), `useUpdateRound(id)`, `useDeleteRound`(성공 시 목록으로 이동).
 - `useRoundAnalysis.ts` — 라운드 하나의 통계(`/rounds/{id}/analysis`).
 - `useStatisticsSummary.ts` — 최근 N라운드 집계 통계 (로그인 상태일 때만 `enabled`), Dashboard가 쓴다.
+- `useCoach.ts` — AI 코치 분석 요청(`useMutation`). LLM 호출이라 몇 초 걸릴 수 있다
+  (`api/coach.ts`가 타임아웃을 30초로 늘려서 호출한다).
 
-Phase 4+에서 `useCoachAnalysis` 등이 같은 패턴으로 추가된다.
+Phase 5+에서 비슷한 패턴으로 다른 AI 기능 훅이 추가된다.

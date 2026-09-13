@@ -38,26 +38,26 @@ export default function Profile() {
 
   return (
     <Layout>
-      <h1 className="text-2xl font-semibold text-emerald-50">골퍼 프로필</h1>
-      <p className="mt-1 text-sm text-emerald-200/60">
+      <h1 className="font-display text-3xl text-ink">골퍼 프로필</h1>
+      <p className="mt-1 text-sm text-ink-soft">
         라운드를 기록하면 이 지표들이 자동으로 갱신됩니다. 그 전까지는 직접 입력해두면 AI
         코치/캐디가 참고할 초기값으로 쓰입니다.
       </p>
 
-      <section className="mt-6 rounded-2xl border border-emerald-800/40 bg-emerald-950/40 p-6 shadow-xl">
+      <section className="mt-6 border border-ink/15 p-6">
         {isLoading ? (
-          <p className="text-sm text-emerald-200/60">불러오는 중...</p>
+          <p className="text-sm text-ink-soft">불러오는 중...</p>
         ) : (
           <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {PROFILE_FIELDS.map(({ key, label, step }) => (
-              <label key={key} className="text-sm text-emerald-200/80">
+              <label key={key} className="text-sm text-ink-soft">
                 {label}
                 <input
                   type="number"
                   step={step}
                   value={form[key] ?? ''}
                   onChange={(e) => handleChange(key, e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-emerald-800/50 bg-black/20 px-3 py-2 text-emerald-50 outline-none focus:border-emerald-500"
+                  className="mt-1.5 w-full border border-ink/20 bg-transparent px-3 py-2 font-mono text-ink outline-none focus:border-ink"
                 />
               </label>
             ))}
@@ -66,12 +66,12 @@ export default function Profile() {
               <button
                 type="submit"
                 disabled={updateProfile.isPending}
-                className="w-full rounded-lg bg-emerald-500 py-2 font-medium text-emerald-950 transition hover:bg-emerald-400 disabled:opacity-50 sm:w-auto sm:px-6"
+                className="w-full bg-flag px-6 py-2.5 font-medium text-paper transition hover:bg-flag-deep disabled:opacity-50 sm:w-auto"
               >
                 {updateProfile.isPending ? '저장 중...' : '저장'}
               </button>
               {updateProfile.isSuccess && (
-                <span className="ml-3 text-sm text-emerald-400">저장됐습니다.</span>
+                <span className="ml-3 text-sm text-fairway">저장됐습니다.</span>
               )}
             </div>
           </form>

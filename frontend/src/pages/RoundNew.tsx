@@ -64,18 +64,22 @@ export default function RoundNew() {
     });
   }
 
+  const fieldClass =
+    'mt-1.5 w-full border border-ink/20 bg-transparent px-3 py-2 text-ink outline-none focus:border-ink';
+  const cellInputClass = 'w-full border border-ink/20 bg-transparent px-2 py-1 font-mono text-ink';
+
   return (
     <Layout>
-      <h1 className="text-2xl font-semibold text-emerald-50">라운드 등록</h1>
+      <h1 className="font-display text-3xl text-ink">라운드 등록</h1>
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-6">
-        <section className="grid grid-cols-1 gap-4 rounded-2xl border border-emerald-800/40 bg-emerald-950/40 p-6 sm:grid-cols-2">
-          <label className="text-sm text-emerald-200/80">
+        <section className="grid grid-cols-1 gap-4 border border-ink/15 p-6 sm:grid-cols-2">
+          <label className="text-sm text-ink-soft">
             골프장
             <select
               value={courseId ?? ''}
               onChange={(e) => setCourseId(Number(e.target.value))}
-              className="mt-1 w-full rounded-lg border border-emerald-800/50 bg-black/20 px-3 py-2 text-emerald-50 outline-none focus:border-emerald-500"
+              className={fieldClass}
             >
               {courses?.map((c) => (
                 <option key={c.id} value={c.id}>
@@ -85,53 +89,53 @@ export default function RoundNew() {
             </select>
           </label>
 
-          <label className="text-sm text-emerald-200/80">
+          <label className="text-sm text-ink-soft">
             라운드 날짜
             <input
               type="date"
               required
               value={roundDate}
               onChange={(e) => setRoundDate(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-emerald-800/50 bg-black/20 px-3 py-2 text-emerald-50 outline-none focus:border-emerald-500"
+              className={fieldClass}
             />
           </label>
 
-          <label className="text-sm text-emerald-200/80">
+          <label className="text-sm text-ink-soft">
             날씨
             <input
               type="text"
               placeholder="맑음, 흐림 등"
               value={weather}
               onChange={(e) => setWeather(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-emerald-800/50 bg-black/20 px-3 py-2 text-emerald-50 outline-none focus:border-emerald-500"
+              className={fieldClass}
             />
           </label>
 
           {!useHoleDetail && (
-            <label className="text-sm text-emerald-200/80">
+            <label className="text-sm text-ink-soft">
               총타수
               <input
                 type="number"
                 required={!useHoleDetail}
                 value={score}
                 onChange={(e) => setScore(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-emerald-800/50 bg-black/20 px-3 py-2 text-emerald-50 outline-none focus:border-emerald-500"
+                className={fieldClass}
               />
             </label>
           )}
 
-          <label className="text-sm text-emerald-200/80 sm:col-span-2">
+          <label className="text-sm text-ink-soft sm:col-span-2">
             메모
             <textarea
               value={memo}
               onChange={(e) => setMemo(e.target.value)}
               rows={2}
-              className="mt-1 w-full rounded-lg border border-emerald-800/50 bg-black/20 px-3 py-2 text-emerald-50 outline-none focus:border-emerald-500"
+              className={fieldClass}
             />
           </label>
         </section>
 
-        <label className="flex items-center gap-2 text-sm text-emerald-200/80">
+        <label className="flex items-center gap-2 text-sm text-ink-soft">
           <input
             type="checkbox"
             checked={useHoleDetail}
@@ -141,10 +145,10 @@ export default function RoundNew() {
         </label>
 
         {useHoleDetail && (
-          <section className="overflow-x-auto rounded-2xl border border-emerald-800/40 bg-emerald-950/40 p-4">
+          <section className="overflow-x-auto border border-ink/15 p-4">
             <table className="w-full min-w-[640px] text-sm">
               <thead>
-                <tr className="text-left text-emerald-300/70">
+                <tr className="text-left text-ink-soft">
                   <th className="p-2">홀</th>
                   <th className="p-2">파</th>
                   <th className="p-2">스코어</th>
@@ -158,15 +162,15 @@ export default function RoundNew() {
               </thead>
               <tbody>
                 {holes.map((hole, index) => (
-                  <tr key={hole.hole_number} className="border-t border-emerald-900/50">
-                    <td className="p-2 text-emerald-100">{hole.hole_number}</td>
-                    <td className="p-2 text-emerald-200/70">{hole.par}</td>
+                  <tr key={hole.hole_number} className="border-t border-ink/10">
+                    <td className="p-2 font-mono text-ink">{hole.hole_number}</td>
+                    <td className="p-2 font-mono text-ink-soft">{hole.par}</td>
                     <td className="p-2">
                       <input
                         type="number"
                         value={hole.score}
                         onChange={(e) => updateHole(index, { score: Number(e.target.value) })}
-                        className="w-16 rounded border border-emerald-800/50 bg-black/20 px-2 py-1 text-emerald-50"
+                        className={`w-16 ${cellInputClass}`}
                       />
                     </td>
                     <td className="p-2">
@@ -174,7 +178,7 @@ export default function RoundNew() {
                         type="number"
                         value={hole.putts}
                         onChange={(e) => updateHole(index, { putts: Number(e.target.value) })}
-                        className="w-14 rounded border border-emerald-800/50 bg-black/20 px-2 py-1 text-emerald-50"
+                        className={`w-14 ${cellInputClass}`}
                       />
                     </td>
                     <td className="p-2 text-center">
@@ -197,7 +201,7 @@ export default function RoundNew() {
                         type="number"
                         value={hole.ob}
                         onChange={(e) => updateHole(index, { ob: Number(e.target.value) })}
-                        className="w-12 rounded border border-emerald-800/50 bg-black/20 px-2 py-1 text-emerald-50"
+                        className={`w-12 ${cellInputClass}`}
                       />
                     </td>
                     <td className="p-2">
@@ -205,7 +209,7 @@ export default function RoundNew() {
                         type="number"
                         value={hole.bunker}
                         onChange={(e) => updateHole(index, { bunker: Number(e.target.value) })}
-                        className="w-12 rounded border border-emerald-800/50 bg-black/20 px-2 py-1 text-emerald-50"
+                        className={`w-12 ${cellInputClass}`}
                       />
                     </td>
                     <td className="p-2">
@@ -213,27 +217,27 @@ export default function RoundNew() {
                         type="number"
                         value={hole.penalty}
                         onChange={(e) => updateHole(index, { penalty: Number(e.target.value) })}
-                        className="w-12 rounded border border-emerald-800/50 bg-black/20 px-2 py-1 text-emerald-50"
+                        className={`w-12 ${cellInputClass}`}
                       />
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-            <p className="mt-3 text-sm text-emerald-200/70">
-              합계 스코어: <span className="font-semibold text-emerald-50">{holeScoreTotal}</span>
+            <p className="mt-3 text-sm text-ink-soft">
+              합계 스코어: <span className="font-mono text-ink">{holeScoreTotal}</span>
             </p>
           </section>
         )}
 
         {createRound.isError && (
-          <p className="text-sm text-red-400">라운드 등록에 실패했습니다. 입력값을 확인해주세요.</p>
+          <p className="text-sm text-flag">라운드 등록에 실패했습니다. 입력값을 확인해주세요.</p>
         )}
 
         <button
           type="submit"
           disabled={createRound.isPending || !courseId}
-          className="rounded-lg bg-emerald-500 px-6 py-2 font-medium text-emerald-950 transition hover:bg-emerald-400 disabled:opacity-50"
+          className="bg-flag px-6 py-2.5 font-medium text-paper transition hover:bg-flag-deep disabled:opacity-50"
         >
           {createRound.isPending ? '등록 중...' : '라운드 등록'}
         </button>

@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 
 import ProtectedRoute from './components/ProtectedRoute';
 import { useAuth } from './context/AuthContext';
+import Coach from './pages/Coach';
 import CourseDetail from './pages/CourseDetail';
 import Courses from './pages/Courses';
 import Dashboard from './pages/Dashboard';
@@ -29,6 +30,7 @@ function protect(element: ReactNode) {
 }
 
 // Phase 3: 골프 데이터 라우트(/courses, /rounds, /profile)가 추가됐다.
+// Phase 4: /coach(AI Coach)가 추가됐다.
 // Phase 1의 SystemStatus는 인프라 점검용으로 /status에 남겨둔다.
 export default function App() {
   return (
@@ -37,6 +39,7 @@ export default function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/dashboard" element={protect(<Dashboard />)} />
+      <Route path="/coach" element={protect(<Coach />)} />
       <Route path="/profile" element={protect(<Profile />)} />
       <Route path="/rounds" element={protect(<Rounds />)} />
       <Route path="/rounds/new" element={protect(<RoundNew />)} />

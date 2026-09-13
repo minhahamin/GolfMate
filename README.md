@@ -6,7 +6,7 @@
 
 **🔗 라이브 데모**: https://golfmate-frontend-production.up.railway.app
 (로그인 화면의 "데모 계정으로 체험하기" 버튼으로 가입 없이 바로 둘러볼 수 있습니다 —
-라운드 8개가 미리 채워져 있어 통계/차트가 바로 보입니다.)
+라운드 8개가 미리 채워져 있어 통계/차트/AI 코치 분석이 바로 보입니다.)
 
 ## 왜 이 프로젝트인가
 
@@ -55,7 +55,7 @@ LLM 애플리케이션을 실제 서비스 아키텍처 안에서 다루는 것�
 |---|---|
 | Frontend | React, TypeScript, Vite, React Router, Tailwind CSS, Axios, TanStack Query, Recharts |
 | Backend | Python 3.12, FastAPI, Pydantic, SQLAlchemy, Alembic, PostgreSQL, JWT |
-| AI | LangChain, LangGraph, Langfuse, LLM API, Embedding Model, pgvector, RAG, Tool Calling |
+| AI | LangChain, LangGraph, Langfuse(Phase 10), OpenRouter(무료 LLM), Embedding Model, pgvector, RAG, Tool Calling |
 | Voice | STT / TTS (외부 API 우선 적용, 교체 가능한 인터페이스로 분리) |
 | Infra | Docker, Docker Compose, Nginx(배포 단계에서 도입) |
 
@@ -81,7 +81,7 @@ golf_knowledge (pgvector, RAG 전용)
 | 1 | 프로젝트 기본 구조 (React+FastAPI+PostgreSQL+Docker) | ✅ 완료 |
 | 2 | 회원가입/로그인 (JWT), Golfer Profile | ✅ 완료 |
 | 3 | 골프 데이터 (Course/Round/Hole/Statistics) — AI 없이 먼저 동작 | ✅ 완료 |
-| 4 | AI Coach (LangChain/LangGraph) | 예정 |
+| 4 | AI Coach (LangChain/LangGraph) | ✅ 완료 |
 | 5 | RAG (골프 지식, pgvector) | 예정 |
 | 6 | AI Golf Diary (STT + Structured Extraction) | 예정 |
 | 7 | 골프장 추천 (실데이터 연동) | 예정 |
@@ -89,7 +89,21 @@ golf_knowledge (pgvector, RAG 전용)
 | 9 | Golf Bet Analysis (그룹/정산/AI Commentary) | 예정 |
 | 10 | Langfuse (Tracing/Prompt Management/Evaluation) | 예정 |
 
-## 현재 상태 (Phase 3까지)
+## 디자인
+
+전 페이지가 같은 톤(어두운 emerald 단색)이라 밋밋하다는 피드백을 받고, 골프라는 소재
+자체(스코어카드, 페어웨이, 벙커, 티마커, 깃발)에서 나온 라이트 테마로 다시 짰습니다.
+
+- **컬러**: 종이 위에 잉크로 적은 스코어카드 느낌 — 서늘한 오프화이트(`#F5F5EF`) 배경에
+  진한 시그널 레드(`#C23B2A`)를 유일한 강조색으로, 페어웨이 그린/벙커 샌드/하늘색은
+  지표별 의미가 있을 때만 씁니다 (전체 배경색으로 쓰지 않음).
+- **타이포그래피**: 헤드라인은 한글 세리프 **Gowun Batang**, 본문은 **IBM Plex Sans KR**,
+  스코어/통계 숫자는 스코어카드의 타자기 숫자처럼 **IBM Plex Mono**로 구분해서 씁니다.
+- **레이아웃**: 카드마다 반복되는 둥근 모서리+그림자(SaaS 카드 키트) 대신, 헤어라인 보더로
+  스코어카드 행(row) 느낌을 냅니다. 18홀처럼 실제 순서가 있는 데이터에만 번호를 쓰고,
+  장식적인 라벨/화살표/가운뎃점 메타 표기는 걷어냈습니다.
+
+## 현재 상태 (Phase 4까지)
 
 - FastAPI 앱과 PostgreSQL이 Docker Compose(로컬)와 Railway(배포)로 연결되고,
   `GET /api/health/db`가 실제 DB 커넥션을 확인합니다.
@@ -110,6 +124,12 @@ golf_knowledge (pgvector, RAG 전용)
   동작합니다. 미인증 접근은 `/login`으로 리다이렉트됩니다.
 - 회원가입 없이 바로 체험할 수 있는 데모 계정(`demo@golfmate.ai`, 라운드 8개 미리 시드됨)이
   로그인 화면에 있습니다.
+- **AI Coach**가 동작합니다. `POST /api/ai/coach`가 LangGraph 파이프라인(Intent Analyzer →
+  Get Profile → Get Recent Rounds → Statistics Analyzer → Weakness/Strategy → Validator)을
+  실행해, 최근 라운드 통계를 근거로 현재 상태·가장 큰 문제·원인·전략·다음 목표 5개 섹션을
+  생성합니다. LLM은 OpenRouter의 무료 모델을 쓰고, 계산(통계)은 Phase 3의
+  `statistics_service.py`를 그대로 재사용합니다 — LLM은 판단/설명만 담당합니다.
+  라운드가 없거나 LLM 호출이 실패해도 500 대신 안내 메시지로 응답합니다.
 
 ## 배포 (Railway)
 

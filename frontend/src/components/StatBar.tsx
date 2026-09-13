@@ -12,13 +12,13 @@ export default function StatBar({
 
   return (
     <div>
-      <div className="flex justify-between text-sm text-emerald-200/70">
+      <div className="flex justify-between text-sm text-ink-soft">
         <span>{label}</span>
-        <span className="text-emerald-100">{displayValue ?? `${clamped.toFixed(0)}%`}</span>
+        <span className="font-mono text-ink">{displayValue ?? `${clamped.toFixed(0)}%`}</span>
       </div>
-      <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-emerald-900/40">
+      <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-paper-2">
         <div
-          className="h-full rounded-full bg-emerald-400 transition-all"
+          className="h-full rounded-full bg-fairway transition-all"
           style={{ width: `${clamped}%` }}
         />
       </div>
