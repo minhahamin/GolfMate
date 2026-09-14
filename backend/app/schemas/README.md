@@ -22,5 +22,10 @@ DB 스키마가 바뀌어도 API 계약을 독립적으로 관리할 수 있다.
   `CourseRecommendationResponse`(summary + 순위별 추천 목록)
 - `caddie.py` (Phase 8) — `CaddieRequest`(course_id, hole_number, question 선택),
   `CaddieResponse`(weather_summary + 3개 섹션: hole_analysis/risk_analysis/club_strategy)
+- `group.py` (Phase 9) — `GroupCreate`, `AddMemberRequest`(email), `GroupRead`,
+  `GroupMemberRead`(user_id/name/email/joined_at), `GroupDetailRead`(GroupRead + members)
+- `bet.py` (Phase 9) — `BetCreate`(title/bet_date/course_name/stake_per_stroke/scores —
+  참가자 2명 이상 검증하는 `model_validator` 보유), `BetResultRead`(정산 결과 1인분),
+  `BetListItem`/`BetRead`, `BetCommentaryRequest`/`BetCommentaryResponse`
 
 명명 규칙: `XxxCreate` / `XxxUpdate` / `XxxRead`.

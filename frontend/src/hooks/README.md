@@ -26,5 +26,11 @@
 - `useRecommend.ts` (Phase 7) — `useCourseRecommendation`(`useMutation`) — `useCoach.ts`와
   동일한 패턴.
 - `useCaddie.ts` (Phase 8) — `useCaddie`(`useMutation`) — `useCoach.ts`와 동일한 패턴.
+- `useGroups.ts` (Phase 9) — `useGroups`(목록), `useGroup(id)`(상세), `useCreateGroup`(성공 시
+  상세 페이지로 이동), `useAddGroupMember(groupId)`, `useRemoveGroupMember(groupId)`.
+- `useBets.ts` (Phase 9) — `useBets(groupId)`(목록), `useBet(id)`(상세),
+  `useCreateBet(groupId)`(성공 시 상세 페이지로 이동) — `useRounds.ts`와 동일한 패턴.
+- `useBetCommentary.ts` (Phase 9) — `useBetCommentary`(`useMutation`) — `useCoach.ts`와
+  동일한 패턴.
 
-Phase 9+에서 비슷한 패턴으로 다른 AI 기능 훅이 추가된다.
+Phase 10(Langfuse)은 새 프론트엔드 훅이 필요 없다 — 백엔드 트레이싱만 추가된다.

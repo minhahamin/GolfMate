@@ -72,8 +72,8 @@ golf_knowledge (pgvector, RAG 전용)
 ```
 
 `users`, `golfer_profiles`, `courses`, `course_holes`, `rounds`, `holes`, `golf_knowledge`,
-`diaries`까지 구현되어 있습니다. 나머지 테이블은 해당 기능이 구현되는 Phase에서 순차적으로
-추가됩니다.
+`diaries`, `groups`, `group_members`, `bets`, `bet_results`까지 구현되어 있습니다. 나머지
+테이블(`ai_sessions` 등)은 해당 기능이 구현되는 Phase에서 순차적으로 추가됩니다.
 
 ## 개발 로드맵
 
@@ -87,7 +87,7 @@ golf_knowledge (pgvector, RAG 전용)
 | 6 | AI Golf Diary (STT + Structured Extraction) | ✅ 완료 |
 | 7 | 골프장 추천 (실데이터 연동) | ✅ 완료 |
 | 8 | AI Caddie (Course/Hole/Weather/Risk) | ✅ 완료 |
-| 9 | Golf Bet Analysis (그룹/정산/AI Commentary) | 예정 |
+| 9 | Golf Bet Analysis (그룹/정산/AI Commentary) | ✅ 완료 |
 | 10 | Langfuse (Tracing/Prompt Management/Evaluation) | 예정 |
 
 ## 디자인
@@ -104,7 +104,7 @@ golf_knowledge (pgvector, RAG 전용)
   스코어카드 행(row) 느낌을 냅니다. 18홀처럼 실제 순서가 있는 데이터에만 번호를 쓰고,
   장식적인 라벨/화살표/가운뎃점 메타 표기는 걷어냈습니다.
 
-## 현재 상태 (Phase 8까지)
+## 현재 상태 (Phase 9까지)
 
 - FastAPI 앱과 PostgreSQL이 Docker Compose(로컬)와 Railway(배포)로 연결되고,
   `GET /api/health/db`가 실제 DB 커넥션을 확인합니다.
@@ -158,6 +158,14 @@ golf_knowledge (pgvector, RAG 전용)
   실시간 날씨를 근거로 홀공략·위험요소·클럽전략 3개 섹션을 생성합니다. 날씨 조회가
   실패해도(`날씨 정보를 가져오지 못했습니다`) 전체 요청은 계속 진행되고, LLM 실패도
   Coach와 동일하게 폴백 텍스트로 200 응답합니다. 존재하지 않는 골프장/홀은 404입니다.
+- **골프 내기 정산 + AI 코멘터리**가 동작합니다. `/groups`에서 모임을 만들고 이메일로
+  친구를 초대하면, `/groups/:id/bets/new`에서 참가자별 스코어를 입력해 내기를 기록할 수
+  있습니다. 정산 금액은 **LLM이 아니라 순수 Python**(`app/services/bet_service.py`의
+  `calculate_settlement`)이 계산합니다 — 타당 내기 규칙(모든 참가자 쌍에 대해 스코어가
+  낮은 쪽이 타수 차 × 타당 금액을 받는 제로섬 정산)을 구현했고, LLM/DB 없이 이 계산만
+  단독으로 검증하는 테스트(`tests/test_bet_settlement.py`)를 따로 뒀습니다. `/bets/:id`의
+  "코멘터리 받기" 버튼을 누르면 AI가 이미 계산된 정산 결과를 유쾌하게 설명해주는데,
+  숫자를 다시 계산하거나 지어내지 않고 주어진 값만 언급하도록 프롬프트에서 강제합니다.
 
 ## 배포 (Railway)
 

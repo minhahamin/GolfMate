@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { to: '/caddie', label: 'AI 캐디' },
   { to: '/rounds', label: '라운드' },
   { to: '/courses', label: '골프장' },
+  { to: '/groups', label: '내기' },
   { to: '/profile', label: '프로필' },
 ];
 

@@ -28,9 +28,12 @@
   다음목표/요약)와 원문, 연결된 라운드 정보
 - `Caddie.tsx` (`/caddie`, 보호됨, Phase 8) — 골프장+홀 선택 → 실시간 날씨(Open-Meteo)를
   반영한 홀공략/위험요소/클럽전략 3개 섹션을 보여준다.
+- `Groups.tsx` (`/groups`, 보호됨, Phase 9) — 내가 속한 모임 목록 + 새 모임 생성 폼
+- `GroupDetail.tsx` (`/groups/:id`, 보호됨, Phase 9) — 멤버 목록(그룹장만 이메일로 멤버
+  추가/제거 가능, 본인은 언제든 탈퇴 가능) + 내기 기록 목록
+- `BetNew.tsx` (`/groups/:id/bets/new`, 보호됨, Phase 9) — 내기 이름/날짜/골프장/타당 금액 +
+  그룹 멤버별 스코어 입력(2명 이상) → 제출 시 서버가 정산 계산
+- `BetDetail.tsx` (`/bets/:id`, 보호됨, Phase 9) — 참가자별 스코어/정산 금액 테이블 +
+  "코멘터리 받기" 버튼(AI가 이미 계산된 결과를 설명)
 - `SystemStatus.tsx` (`/status`) — 백엔드/DB 연결 상태 확인용 (Phase 1에서 만든 인프라 점검
   페이지, 루트 경로에서 `/status`로 이동했다).
-
-## 앞으로 추가될 페이지 (마스터 스펙 §21)
-
-`/bet`, `/bet/:id`.

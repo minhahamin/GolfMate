@@ -18,10 +18,14 @@
   시 422), `round_id`를 직접 지정했으면 소유권 확인(다른 사용자 라운드면 404) 후
   `app/ai/diary/graph.py`를 호출해 구조화 필드를 생성하고 저장한다. 조회/삭제는 Round와
   동일하게 소유권 확인(`get_my_diary`)을 거쳐 404-not-403 원칙을 따른다.
-
-## 앞으로 (Phase 7+)
-
-`bet_service.py` (내기 정산 — **LLM이 아닌 Python이 금액을 계산**한다), `recommendation_service.py` 등.
+- `group_service.py` (Phase 9) — 그룹 CRUD + 멤버 관리. 모든 조회는 멤버십 확인
+  (`get_group_detail`)을 거쳐 404-not-403 원칙을 따른다. 멤버 추가/제거는 그룹장 권한
+  확인(403)을 추가로 거친다.
+- `bet_service.py` (Phase 9) — **순수 Python이 내기 정산 금액을 계산한다, LLM 없음**
+  (설계 원칙 5번). `calculate_settlement(scores, stake_per_stroke)`가 타당 내기(모든 쌍에
+  대해 스코어가 낮은 쪽이 타수 차만큼 받는 제로섬 정산)를 계산하고,
+  `tests/test_bet_settlement.py`에서 DB/HTTP 없이 단독으로 검증한다. `create_bet`은 참가자가
+  전부 그룹 멤버인지 확인한 뒤 이 함수를 호출해 `BetResult`를 저장한다.
 
 원칙: 계산 가능한 것은 여기(Python)에서 처리하고, 자연어 판단/설명이 필요한 부분만
 `app/ai/`를 호출한다.

@@ -16,5 +16,10 @@ Service는 SQLAlchemy Session이나 쿼리문을 직접 다루지 않고, 이 �
   거리 기준 상위 N개, RAG 전용이라 user_id 필터 없음)
 - `diary_repository.py` (Phase 6) — `list_by_user`, `get_by_id_for_user`(**반드시 user_id로
   필터**, `round`→`course`까지 eager load해 `round_summary` 조립에 쓴다), `create`, `delete`
+- `group_repository.py` (Phase 9) — `create`(그룹 생성 + 소유자를 첫 멤버로 추가),
+  `list_by_user`, `get_by_id_for_user`(**반드시 멤버십 확인** — 멤버가 아닌 그룹은 절대
+  반환하지 않는다), `add_member`, `remove_member`, `is_member`
+- `bet_repository.py` (Phase 9) — `create`, `create_results`(정산 결과 일괄 저장),
+  `get_by_id`(참가자+유저 eager load), `list_by_group`
 
 클래스가 아니라 모듈 함수로 작성한다 (상태를 갖지 않으므로 클래스로 감쌀 이유가 없다).

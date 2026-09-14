@@ -24,7 +24,8 @@ app/ai/
 │   ├── coach/system.py     # Coach 프롬프트 템플릿 (Role→Goal→Data→Rules→Format)
 │   ├── diary/system.py     # Diary 프롬프트 템플릿 (Phase 6)
 │   ├── recommend/system.py # 골프장 추천 프롬프트 템플릿 (Phase 7)
-│   └── caddie/system.py    # 캐디 프롬프트 템플릿 (Phase 8)
+│   ├── caddie/system.py    # 캐디 프롬프트 템플릿 (Phase 8)
+│   └── bet/system.py       # 내기 AI 코멘터리 프롬프트 템플릿 (Phase 9)
 ├── rag/
 │   ├── embeddings.py      # 로컬 sentence-transformers 임베딩 (multilingual-e5-small)
 │   ├── knowledge_data.py  # 시드용 골프 지식 원본 데이터 (규칙/스윙/퍼팅/코스매니지먼트/에티켓)
@@ -41,10 +42,13 @@ app/ai/
 │   ├── state.py           # RecommendState (TypedDict) — Phase 7
 │   ├── graph.py           # 골프장 추천 LangGraph 정의 + 실행 함수 — Phase 7
 │   └── parser.py          # LLM 응답을 순위별 추천 목록으로 텍스트 파싱 — Phase 7
-└── caddie/
-    ├── state.py           # CaddieState (TypedDict) — Phase 8
-    ├── graph.py           # 캐디 LangGraph 정의 + 실행 함수 — Phase 8
-    └── parser.py          # LLM 응답을 3개 섹션으로 텍스트 파싱 — Phase 8
+├── caddie/
+│   ├── state.py           # CaddieState (TypedDict) — Phase 8
+│   ├── graph.py           # 캐디 LangGraph 정의 + 실행 함수 — Phase 8
+│   └── parser.py          # LLM 응답을 3개 섹션으로 텍스트 파싱 — Phase 8
+└── bet/
+    ├── state.py           # BetCommentaryState (TypedDict) — Phase 9
+    └── graph.py           # 내기 AI 코멘터리 LangGraph 정의 + 실행 함수 — Phase 9
 ```
 
 ## Coach Graph (Phase 4~5, 구현 완료)
@@ -180,10 +184,28 @@ START
   대화형 캐디)이 필요해지면 이 서비스 함수들을 `@tool`로 감싸는 방향으로 확장하면 된다.
 - Coach와 동일한 LLM 클라이언트(`get_coach_llm()`)를 재사용한다.
 
-## 예정 구조 (Phase 9+)
+## Bet Commentary Graph (Phase 9, 구현 완료)
 
-- **Bet Analysis Graph** (Phase 9): Get Group/Members/Rounds → Statistics → Bet Rule Engine
-  (Python 정산) → AI Commentary (LLM은 설명만, 금액 계산은 하지 않음)
+```text
+START
+ → commentary_generation (유일한 LLM 호출 — 이미 계산된 정산 결과를 설명만 한다)
+ → commentary_validator  (규칙 기반: 응답이 비어있으면 폴백)
+ → END
+```
+
+- 로드맵의 "Bet Rule Engine(Python 정산)"은 그래프가 아니라 `app/services/bet_service.py`의
+  `calculate_settlement()`로 구현했다 — **금전 계산은 LLM이 절대 하지 않는다**(설계 원칙
+  5번). 타당 내기 규칙(모든 쌍에 대해 스코어가 낮은 쪽이 (타수 차 × stake_per_stroke)를
+  받는 제로섬 정산)을 순수 함수로 구현하고 `tests/test_bet_settlement.py`에서 LLM/DB 없이
+  단독으로 검증한다.
+- 이 그래프는 이미 확정된 `payout_amount`를 프롬프트에 그대로 넣고, "숫자를 다시 계산하거나
+  지어내지 말라"는 규칙으로 LLM이 설명(코멘터리)만 담당하게 한다.
+- `bet`은 라우터(`app/api/routers/bet_commentary.py`)가 멤버십 확인 후 이미 조회해 초기
+  state로 넘긴다 (Caddie의 course/hole과 동일한 패턴).
+- Coach와 동일한 LLM 클라이언트(`get_coach_llm()`)를 재사용한다.
+
+## 예정 구조 (Phase 10+)
+
 - **Langfuse** (Phase 10): 모든 그래프의 Trace/Span/Generation/Token/Latency를 추적
 
 ## State 설계 원칙

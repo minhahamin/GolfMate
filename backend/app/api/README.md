@@ -43,8 +43,23 @@
   - `POST /api/ai/caddie` — 골프장/홀/선택적 질문을 받아 Open-Meteo 실시간 날씨를 반영한
     홀공략/위험요소/클럽전략을 생성 (LangGraph, `app/ai/caddie/graph.py`). 존재하지 않는
     골프장/홀은 404, 날씨 조회 실패나 LLM 실패는 폴백으로 200 응답.
+- `routers/groups.py` (모두 `get_current_user` 의존, 본인이 속한 그룹만 접근 가능, Phase 9)
+  - `POST /api/groups` — 그룹 생성 (생성자가 그룹장 + 첫 멤버가 됨)
+  - `GET /api/groups` — 내가 속한 그룹 목록
+  - `GET /api/groups/{group_id}` — 그룹 상세(멤버 목록 포함, 멤버가 아니면 404)
+  - `POST /api/groups/{group_id}/members` — 이메일로 멤버 추가 (그룹장만, 403/404)
+  - `DELETE /api/groups/{group_id}/members/{user_id}` — 멤버 제거/탈퇴 (본인 탈퇴 또는
+    그룹장만, 그룹장 본인은 탈퇴 불가)
+  - `POST /api/groups/{group_id}/bets` — 내기 생성 + 정산 (`bet_service.calculate_settlement`,
+    참가자는 반드시 그룹 멤버여야 하고 2명 이상이어야 함)
+  - `GET /api/groups/{group_id}/bets` — 그룹의 내기 목록
+- `routers/bets.py` (`get_current_user` 의존, Phase 9)
+  - `GET /api/bets/{bet_id}` — 내기 상세(참가자별 스코어+정산 금액, 그룹 멤버가 아니면 404)
+- `routers/bet_commentary.py` (`get_current_user` 의존, Phase 9)
+  - `POST /api/ai/bet-commentary` — 이미 계산된 정산 결과를 설명하는 AI 코멘터리 생성
+    (LangGraph, `app/ai/bet/graph.py`). LLM은 금액을 다시 계산하지 않는다.
 
 ## 앞으로 추가될 라우터 (마스터 스펙 §20 기준)
 
-`groups`, `bets`.
+Phase 10(Langfuse)은 새 라우터가 아니라 기존 그래프에 트레이싱을 추가하는 방식이다.
 각 라우터는 요청 검증 → service 호출 → 응답 반환만 담당하고, 비즈니스 로직은 갖지 않는다.

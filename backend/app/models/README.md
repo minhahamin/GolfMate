@@ -27,6 +27,16 @@
   달리 소유(cascade) 관계가 아니라 느슨한 참조라 `ondelete="SET NULL"`을 쓴다. 라운드가
   삭제돼도 일기는 남는다), `raw_text`(원문), `summary`/`mood`/`highlights`/
   `improvement_points`/`next_goal`(AI가 정리한 구조화 필드).
+- **Group** (`group.py`, Phase 9) — 내기를 함께 하는 모임. `name`, `owner_id`. `members`는
+  `GroupMember`와의 관계.
+- **GroupMember** (`group_member.py`, Phase 9) — User와 Group의 N:M 조인 테이블.
+  `(group_id, user_id)` unique 제약.
+- **Bet** (`bet.py`, Phase 9) — 그룹이 한 내기 한 건. `group_id`, `created_by`, `title`,
+  `bet_date`, `course_name`(자유 텍스트 — Round는 사용자 1명 소유라 그룹원 여러 명의 같은
+  날 스코어를 하나로 묶을 방법이 없어 Round를 참조하지 않는다), `stake_per_stroke`.
+- **BetResult** (`bet_result.py`, Phase 9) — 내기 참가자 1명의 스코어와 정산 금액.
+  `payout_amount`은 `bet_service.calculate_settlement()`가 계산한 값을 그대로 저장한다 —
+  LLM은 이 숫자를 절대 다시 계산하지 않는다(설계 원칙 5번).
 
 ## 새 모델을 추가할 때
 
@@ -35,5 +45,4 @@
    이걸 보고 변경을 감지한다).
 3. `alembic revision --autogenerate -m "..."`로 마이그레이션을 생성한다.
 
-향후 Phase 7+에서 `Group`, `Bet` 등의 모델이 이 패턴으로 추가된다 (전체 데이터 모델은
-루트 README의 ERD 참고).
+전체 데이터 모델은 루트 README의 ERD 참고.

@@ -16,3 +16,6 @@
 - `recommend.ts` (Phase 7) — `CourseRecommendationRequest`, `CourseRecommendation`(Course +
   reason), `CourseRecommendationResponse`
 - `caddie.ts` (Phase 8) — `CaddieRequest`, `CaddieResponse`(weather_summary + 3개 섹션)
+- `group.ts` (Phase 9) — `GroupRead`, `GroupMember`, `GroupDetail`(GroupRead + members)
+- `bet.ts` (Phase 9) — `BetCreatePayload`(scores: user_id -> score), `BetResult`,
+  `BetListItem`/`Bet`

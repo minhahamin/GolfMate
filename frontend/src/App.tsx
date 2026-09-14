@@ -3,6 +3,8 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 
 import ProtectedRoute from './components/ProtectedRoute';
 import { useAuth } from './context/AuthContext';
+import BetDetail from './pages/BetDetail';
+import BetNew from './pages/BetNew';
 import Caddie from './pages/Caddie';
 import Coach from './pages/Coach';
 import CourseDetail from './pages/CourseDetail';
@@ -12,6 +14,8 @@ import Dashboard from './pages/Dashboard';
 import Diary from './pages/Diary';
 import DiaryDetail from './pages/DiaryDetail';
 import DiaryNew from './pages/DiaryNew';
+import GroupDetail from './pages/GroupDetail';
+import Groups from './pages/Groups';
 import Login from './pages/Login';
 import Profile from './pages/Profile';
 import Register from './pages/Register';
@@ -40,6 +44,7 @@ function protect(element: ReactNode) {
 // Phase 7: /courses/recommend(AI 골프장 추천)가 추가됐다 — /courses/:id보다 먼저 등록해야
 // "recommend"가 id로 오인되지 않는다.
 // Phase 8: /caddie(AI 캐디)가 추가됐다.
+// Phase 9: /groups(내기 모임), /bets/:id(내기 상세 + AI 코멘터리)가 추가됐다.
 // Phase 1의 SystemStatus는 인프라 점검용으로 /status에 남겨둔다.
 export default function App() {
   return (
@@ -60,6 +65,10 @@ export default function App() {
       <Route path="/diary" element={protect(<Diary />)} />
       <Route path="/diary/new" element={protect(<DiaryNew />)} />
       <Route path="/diary/:id" element={protect(<DiaryDetail />)} />
+      <Route path="/groups" element={protect(<Groups />)} />
+      <Route path="/groups/:id" element={protect(<GroupDetail />)} />
+      <Route path="/groups/:id/bets/new" element={protect(<BetNew />)} />
+      <Route path="/bets/:id" element={protect(<BetDetail />)} />
       <Route path="/status" element={<SystemStatus />} />
     </Routes>
   );
