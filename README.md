@@ -56,7 +56,7 @@ LLM 애플리케이션을 실제 서비스 아키텍처 안에서 다루는 것�
 | Frontend | React, TypeScript, Vite, React Router, Tailwind CSS, Axios, TanStack Query, Recharts |
 | Backend | Python 3.12, FastAPI, Pydantic, SQLAlchemy, Alembic, PostgreSQL, JWT |
 | AI | LangChain, LangGraph, Langfuse(Phase 10), OpenRouter(무료 LLM), Embedding Model, pgvector, RAG, Tool Calling |
-| Voice | STT / TTS (외부 API 우선 적용, 교체 가능한 인터페이스로 분리) |
+| Voice | STT — 로컬 faster-whisper (Phase 6, API 키/과금 없음). TTS는 아직 미도입 |
 | Infra | Docker, Docker Compose, Nginx(배포 단계에서 도입) |
 
 ## 데이터 모델 (개요)
@@ -65,14 +65,15 @@ LLM 애플리케이션을 실제 서비스 아키텍처 안에서 다루는 것�
 users ──1:1── golfer_profiles
 users ──1:N── rounds ──1:N── holes ──1:N── shots
 courses ──1:N── course_holes
-users ──1:N── diaries
+users ──1:N── diaries ──N:1── rounds (선택적 연결, 라운드 삭제돼도 일기는 남음)
 users ──N:M── groups (group_members) ──1:N── bets ──1:N── bet_results
 users ──1:N── ai_sessions ──1:N── ai_messages / ai_recommendations
 golf_knowledge (pgvector, RAG 전용)
 ```
 
-`users`, `golfer_profiles`, `courses`, `course_holes`, `rounds`, `holes`, `golf_knowledge`까지
-구현되어 있습니다. 나머지 테이블은 해당 기능이 구현되는 Phase에서 순차적으로 추가됩니다.
+`users`, `golfer_profiles`, `courses`, `course_holes`, `rounds`, `holes`, `golf_knowledge`,
+`diaries`까지 구현되어 있습니다. 나머지 테이블은 해당 기능이 구현되는 Phase에서 순차적으로
+추가됩니다.
 
 ## 개발 로드맵
 
@@ -83,7 +84,7 @@ golf_knowledge (pgvector, RAG 전용)
 | 3 | 골프 데이터 (Course/Round/Hole/Statistics) — AI 없이 먼저 동작 | ✅ 완료 |
 | 4 | AI Coach (LangChain/LangGraph) | ✅ 완료 |
 | 5 | RAG (골프 지식, pgvector) | ✅ 완료 (로컬 + Railway) |
-| 6 | AI Golf Diary (STT + Structured Extraction) | 예정 |
+| 6 | AI Golf Diary (STT + Structured Extraction) | ✅ 완료 |
 | 7 | 골프장 추천 (실데이터 연동) | 예정 |
 | 8 | AI Caddie (Course/Hole/Weather/Risk) | 예정 |
 | 9 | Golf Bet Analysis (그룹/정산/AI Commentary) | 예정 |
@@ -103,7 +104,7 @@ golf_knowledge (pgvector, RAG 전용)
   스코어카드 행(row) 느낌을 냅니다. 18홀처럼 실제 순서가 있는 데이터에만 번호를 쓰고,
   장식적인 라벨/화살표/가운뎃점 메타 표기는 걷어냈습니다.
 
-## 현재 상태 (Phase 5까지)
+## 현재 상태 (Phase 6까지)
 
 - FastAPI 앱과 PostgreSQL이 Docker Compose(로컬)와 Railway(배포)로 연결되고,
   `GET /api/health/db`가 실제 DB 커넥션을 확인합니다.
@@ -136,6 +137,14 @@ golf_knowledge (pgvector, RAG 전용)
   LLM이 검증되지 않은 골프 규칙을 지어내지 않도록 막는 용도입니다. 자세한 구조는
   [`backend/app/ai/README.md`](backend/app/ai/README.md) 참고. 로컬 Docker Compose와
   Railway(`golfmate-pgvector` 서비스, 아래 배포 절 참고) 양쪽 모두에 적용되어 있습니다.
+- **AI 골프 일기**가 동작합니다. `/diary/new`에서 라운드 소감을 텍스트로 쓰거나 마이크로
+  녹음하면(`POST /api/diaries`, multipart), 음성은 로컬 `faster-whisper`로 전사한 뒤
+  원본 오디오는 즉시 폐기하고, LangGraph(`app/ai/diary/graph.py`)가 기분·하이라이트·개선점·
+  다음목표·요약 5개 필드로 정리합니다. STT도 LLM(OpenRouter 무료 모델)도 API 과금 없이
+  동작해 라이브 데모 계정에서도 실제 녹음을 그대로 써볼 수 있습니다. 라운드를 직접 지정하지
+  않으면 AI가 최근 라운드 후보 중에서 자동으로 매칭하되, 후보 목록에 없는 라운드는 절대
+  만들어내지 않습니다(환각 방지). STT 실패는 422, LLM 실패는 Coach와 동일하게 폴백 텍스트로
+  응답하며 원문은 항상 저장됩니다.
 
 ## 배포 (Railway)
 

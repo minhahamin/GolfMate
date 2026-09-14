@@ -25,6 +25,10 @@ class Settings(BaseSettings):
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
     openrouter_model: str = "nvidia/nemotron-3-super-120b-a12b:free"
 
+    # AI 골프 일기(Phase 6)의 STT — 과금/API 키 없이 로컬 faster-whisper로 전사한다.
+    # 모델 크기를 키우면(예: small/medium) 한국어 인식 정확도는 오르지만 느려진다.
+    whisper_model_size: str = "base"
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]

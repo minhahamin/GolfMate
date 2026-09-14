@@ -11,7 +11,13 @@ from datetime import date, timedelta
 
 from app.core.database import SessionLocal
 from app.core.security import hash_password
-from app.repositories import course_repository, golfer_profile_repository, round_repository, user_repository
+from app.repositories import (
+    course_repository,
+    diary_repository,
+    golfer_profile_repository,
+    round_repository,
+    user_repository,
+)
 
 DEMO_EMAIL = "demo@golfmate.ai"
 DEMO_PASSWORD = "golfmate-demo!"
@@ -30,6 +36,36 @@ DEMO_ROUNDS = [
 ]
 
 _rng = random.Random(42)  # 매번 같은 데이터가 나오도록 시드 고정
+
+# Phase 6 AI 골프 일기 데모 데이터. 컨테이너 부팅 시 LLM(OpenRouter) 호출 없이도 데모
+# 방문자가 바로 결과물을 볼 수 있도록, AI 파이프라인을 거치지 않고 완성된 텍스트를 직접
+# 심는다 (seed_courses/seed_golf_knowledge와 마찬가지로 네트워크 의존 없는 멱등 시드).
+DEMO_DIARIES = [
+    {
+        "raw_text": (
+            "오늘 라운드는 전반에 드라이버가 잘 맞아서 기분 좋게 시작했는데, "
+            "후반 들어 퍼팅이 계속 짧게 가서 3퍼팅이 많았다. 그래도 마지막 홀에서 "
+            "파를 잡아서 나쁘지 않게 마무리했다."
+        ),
+        "summary": "전반 드라이버 샷감이 좋았지만 후반 3퍼팅이 반복돼 스코어를 지켰다.",
+        "mood": "아쉽지만 만족",
+        "highlights": "전반 드라이버 샷감, 마지막 홀 파 마무리",
+        "improvement_points": "후반 퍼팅 거리감 — 짧은 퍼팅이 계속 모자랐다",
+        "next_goal": "다음 라운드에서는 그린 주변 퍼팅 거리감 연습 후 라운드에 임하기",
+    },
+    {
+        "raw_text": (
+            "비가 살짝 와서 그립이 미끄러웠는데도 페어웨이 적중률이 평소보다 높았다. "
+            "다만 벙커에 두 번이나 빠져서 거기서 타수를 많이 잃었다. "
+            "전체적으로는 평소보다 나은 라운드였다."
+        ),
+        "summary": "궂은 날씨에도 페어웨이 적중률이 좋았지만 벙커샷에서 타수를 잃었다.",
+        "mood": "만족",
+        "highlights": "평소보다 높은 페어웨이 적중률",
+        "improvement_points": "벙커샷 — 두 번 모두 탈출에 실패해 타수 손실",
+        "next_goal": "벙커샷 연습을 다음 연습 라운드에 포함하기",
+    },
+]
 
 
 def _generate_holes(course_holes: list, target_score: int) -> list[dict]:
@@ -68,11 +104,30 @@ def _generate_holes(course_holes: list, target_score: int) -> list[dict]:
     return holes
 
 
+def _seed_demo_diaries(db, user_id: int) -> None:
+    """멱등적으로 데모 일기를 심는다 — 이미 일기가 있으면 건너뛴다."""
+    if diary_repository.list_by_user(db, user_id):
+        print("데모 일기가 이미 있어 건너뜁니다.")
+        return
+
+    recent_rounds = round_repository.list_recent_by_user(db, user_id, limit=len(DEMO_DIARIES))
+    if not recent_rounds:
+        print("데모 라운드가 없어 데모 일기를 만들 수 없습니다.")
+        return
+
+    for diary_data, round_ in zip(DEMO_DIARIES, recent_rounds):
+        diary_repository.create(db, user_id=user_id, round_id=round_.id, **diary_data)
+    db.commit()
+    print(f"데모 일기 생성됨: {len(DEMO_DIARIES)}개")
+
+
 def run() -> None:
     db = SessionLocal()
     try:
-        if user_repository.get_by_email(db, DEMO_EMAIL) is not None:
-            print("데모 계정이 이미 있어 건너뜁니다.")
+        existing_user = user_repository.get_by_email(db, DEMO_EMAIL)
+        if existing_user is not None:
+            print("데모 계정이 이미 있어 라운드 시드는 건너뜁니다.")
+            _seed_demo_diaries(db, existing_user.id)
             return
 
         courses = course_repository.list_all(db)
@@ -124,6 +179,8 @@ def run() -> None:
 
         db.commit()
         print(f"데모 계정 생성됨: {DEMO_EMAIL} / 라운드 {len(DEMO_ROUNDS)}개")
+
+        _seed_demo_diaries(db, user.id)
     finally:
         db.close()
 

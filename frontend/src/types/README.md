@@ -11,3 +11,5 @@
 - `round.ts` — `HoleInput`/`HoleRead`, `Round`/`RoundListItem`, `RoundCreatePayload`/
   `RoundUpdatePayload`, `RoundAnalysis`, `StatisticsSummary`
 - `coach.ts` — `CoachResponse` (5개 섹션)
+- `diary.ts` (Phase 6) — `DiaryListItem`, `Diary`(5개 AI 필드 + round_summary + raw_text),
+  `DiaryCreatePayload`(text/audioBlob/roundId — multipart 전송용이라 Round와 달리 camelCase)

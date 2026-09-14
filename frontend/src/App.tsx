@@ -7,6 +7,9 @@ import Coach from './pages/Coach';
 import CourseDetail from './pages/CourseDetail';
 import Courses from './pages/Courses';
 import Dashboard from './pages/Dashboard';
+import Diary from './pages/Diary';
+import DiaryDetail from './pages/DiaryDetail';
+import DiaryNew from './pages/DiaryNew';
 import Login from './pages/Login';
 import Profile from './pages/Profile';
 import Register from './pages/Register';
@@ -31,6 +34,7 @@ function protect(element: ReactNode) {
 
 // Phase 3: 골프 데이터 라우트(/courses, /rounds, /profile)가 추가됐다.
 // Phase 4: /coach(AI Coach)가 추가됐다.
+// Phase 6: /diary(AI 골프 일기)가 추가됐다.
 // Phase 1의 SystemStatus는 인프라 점검용으로 /status에 남겨둔다.
 export default function App() {
   return (
@@ -46,6 +50,9 @@ export default function App() {
       <Route path="/rounds/:id" element={protect(<RoundDetail />)} />
       <Route path="/courses" element={protect(<Courses />)} />
       <Route path="/courses/:id" element={protect(<CourseDetail />)} />
+      <Route path="/diary" element={protect(<Diary />)} />
+      <Route path="/diary/new" element={protect(<DiaryNew />)} />
+      <Route path="/diary/:id" element={protect(<DiaryDetail />)} />
       <Route path="/status" element={<SystemStatus />} />
     </Routes>
   );

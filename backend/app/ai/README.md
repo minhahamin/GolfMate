@@ -16,16 +16,23 @@ User → React → FastAPI → LangGraph → Agent/Tool/RAG → LLM → Validati
 app/ai/
 ├── llm/
 │   └── client.py         # OpenRouter(OpenAI 호환 API)로 ChatOpenAI 구성
-├── prompts/coach/
-│   └── system.py         # Coach 프롬프트 템플릿 (Role→Goal→Data→Rules→Format)
+├── stt/
+│   └── transcriber.py     # 로컬 faster-whisper로 음성 → 텍스트 전사 (Phase 6)
+├── prompts/
+│   ├── coach/system.py    # Coach 프롬프트 템플릿 (Role→Goal→Data→Rules→Format)
+│   └── diary/system.py    # Diary 프롬프트 템플릿 (Phase 6)
 ├── rag/
 │   ├── embeddings.py      # 로컬 sentence-transformers 임베딩 (multilingual-e5-small)
 │   ├── knowledge_data.py  # 시드용 골프 지식 원본 데이터 (규칙/스윙/퍼팅/코스매니지먼트/에티켓)
 │   └── retriever.py       # 질문 임베딩 → golf_knowledge_repository 검색
-└── coach/
-    ├── state.py           # GolfCoachState (TypedDict)
-    ├── graph.py           # Coach LangGraph 정의 + 실행 함수
-    └── parser.py          # LLM 응답을 5개 섹션으로 텍스트 파싱
+├── coach/
+│   ├── state.py           # GolfCoachState (TypedDict)
+│   ├── graph.py           # Coach LangGraph 정의 + 실행 함수
+│   └── parser.py          # LLM 응답을 5개 섹션으로 텍스트 파싱
+└── diary/
+    ├── state.py           # DiaryState (TypedDict) — Phase 6
+    ├── graph.py           # Diary LangGraph 정의 + 실행 함수 — Phase 6
+    └── parser.py          # LLM 응답을 6개 섹션(5개 필드+매칭라운드)으로 텍스트 파싱 — Phase 6
 ```
 
 ## Coach Graph (Phase 4~5, 구현 완료)
@@ -85,10 +92,33 @@ START
 루트(`/var/lib/postgresql/data`)에 직접 마운트하면 `lost+found` 디렉터리 때문에 `initdb`가
 실패하므로, 볼륨은 `/pgdata`에 마운트하고 `PGDATA=/pgdata/pgdata`(하위 디렉터리)로 지정했다.
 
-## 예정 구조 (Phase 6+)
+## Diary Graph (Phase 6, 구현 완료)
 
-- **Diary Graph** (Phase 6): STT → Diary Extraction → Round Matching → Emotion/Event
-  Analysis → Diary Generation
+```text
+START
+ → get_recent_rounds  (round_repository.list_recent_by_user 재사용, Coach와 동일 함수, LLM 없음)
+ → diary_generation    (유일한 LLM 호출 — 감정/사건 정리 + 라운드 매칭 + 일기 생성을 한 번에)
+ → diary_validator     (규칙 기반: 응답이 비어있으면 폴백, 후보 목록에 없는 round_id는 버림)
+ → END
+```
+
+- STT(음성 → 텍스트)는 이 그래프에 포함하지 않는다. 오디오 디코딩 실패는 "AI 판단 실패"가
+  아니라 "사용자 입력 자체가 유효하지 않음"이라 Coach 스타일 LLM 폴백과 성격이 달라서다 —
+  `app/services/diary_service.py`가 그래프 호출 전에 먼저 처리해 실패 시 422로 끊는다.
+- STT는 과금 없이 API 키 없이 쓸 수 있도록, RAG의 로컬 임베딩 모델과 같은 원칙으로
+  로컬 `faster-whisper`(PyTorch 불필요, CTranslate2 기반)를 쓴다 (`app/ai/stt/transcriber.py`).
+  원본 오디오는 전사 직후 폐기하고 서버에 저장하지 않는다.
+- `diary_generation`이 최근 라운드 후보 목록(id 포함)을 프롬프트에 주고, LLM이 그중 하나를
+  고르거나 "없음"을 답하게 한다 — 원칙("실존 정보는 LLM이 지어내지 않고 항상 실제 DB 후보
+  중에서만 선택")을 그대로 적용. `diary_validator`가 LLM이 후보에 없는 id를 답해도(환각)
+  최종적으로 걸러낸다.
+- 사용자가 폼에서 직접 라운드를 선택했다면(`round_id_hint`) LLM의 매칭 결과 대신 그 값을
+  그대로 신뢰한다.
+- Coach와 동일한 LLM 클라이언트(`get_coach_llm()`)를 그대로 재사용한다 — 별도 클라이언트를
+  만들지 않았다.
+
+## 예정 구조 (Phase 7+)
+
 - **Course Recommendation Graph** (Phase 7): Preference Analyzer → Course Search Tool →
   Filter → Recommendation Agent → Ranking (실존하지 않는 골프장을 LLM이 만들어내지 않도록,
   후보는 항상 DB/외부 API에서 가져온 것만 사용)

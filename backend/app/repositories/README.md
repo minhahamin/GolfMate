@@ -11,5 +11,9 @@ Service는 SQLAlchemy Session이나 쿼리문을 직접 다루지 않고, 이 �
 - `round_repository.py` — `list_by_user`, `list_recent_by_user`(통계용, 홀 eager load),
   `get_by_id_for_user`(**반드시 user_id로 필터** — 다른 사용자 라운드는 절대 반환하지 않는다),
   `create`, `replace_holes`, `update_fields`, `delete`
+- `golf_knowledge_repository.py` — `get_by_title`(시드 멱등성 체크용), `search_similar`(코사인
+  거리 기준 상위 N개, RAG 전용이라 user_id 필터 없음)
+- `diary_repository.py` (Phase 6) — `list_by_user`, `get_by_id_for_user`(**반드시 user_id로
+  필터**, `round`→`course`까지 eager load해 `round_summary` 조립에 쓴다), `create`, `delete`
 
 클래스가 아니라 모듈 함수로 작성한다 (상태를 갖지 않으므로 클래스로 감쌀 이유가 없다).

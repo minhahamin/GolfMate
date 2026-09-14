@@ -14,8 +14,12 @@
   (한 라운드 통계: score_to_par, 퍼팅/페어웨이/GIR, 파3·4·5별 평균)와
   `compute_statistics_summary`(최근 N라운드 집계: 평균/베스트 스코어, 추이). Phase 4 AI Coach가
   이 함수들을 그대로 재사용한다.
+- `diary_service.py` (Phase 6) — 일기 생성 오케스트레이션: 오디오가 있으면 먼저 STT(실패
+  시 422), `round_id`를 직접 지정했으면 소유권 확인(다른 사용자 라운드면 404) 후
+  `app/ai/diary/graph.py`를 호출해 구조화 필드를 생성하고 저장한다. 조회/삭제는 Round와
+  동일하게 소유권 확인(`get_my_diary`)을 거쳐 404-not-403 원칙을 따른다.
 
-## 앞으로 (Phase 4+)
+## 앞으로 (Phase 7+)
 
 `bet_service.py` (내기 정산 — **LLM이 아닌 Python이 금액을 계산**한다), `recommendation_service.py` 등.
 

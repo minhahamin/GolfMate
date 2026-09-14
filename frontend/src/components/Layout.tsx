@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 const NAV_ITEMS = [
   { to: '/dashboard', label: '대시보드' },
   { to: '/coach', label: 'AI 코치' },
+  { to: '/diary', label: 'AI 일기' },
   { to: '/rounds', label: '라운드' },
   { to: '/courses', label: '골프장' },
   { to: '/profile', label: '프로필' },

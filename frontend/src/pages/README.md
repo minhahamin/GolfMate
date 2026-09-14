@@ -19,9 +19,14 @@
 - `RoundDetail.tsx` (`/rounds/:id`, 보호됨) — 라운드 정보 + 홀 테이블 + AI 분석(계산 기반) 통계
 - `Courses.tsx` (`/courses`, 보호됨) — 골프장 목록
 - `CourseDetail.tsx` (`/courses/:id`, 보호됨) — 골프장 정보 + 홀별 파/거리 테이블
+- `Diary.tsx` (`/diary`, 보호됨) — 내 AI 일기 목록 (날짜/기분/요약 미리보기)
+- `DiaryNew.tsx` (`/diary/new`, 보호됨) — 텍스트 입력 또는 마이크 녹음(`useAudioRecorder`)으로
+  일기 작성, 선택적 라운드 드롭다운(비워두면 AI가 최근 라운드 중에서 자동 매칭)
+- `DiaryDetail.tsx` (`/diary/:id`, 보호됨) — AI가 정리한 5개 필드(기분/하이라이트/개선점/
+  다음목표/요약)와 원문, 연결된 라운드 정보
 - `SystemStatus.tsx` (`/status`) — 백엔드/DB 연결 상태 확인용 (Phase 1에서 만든 인프라 점검
   페이지, 루트 경로에서 `/status`로 이동했다).
 
 ## 앞으로 추가될 페이지 (마스터 스펙 §21)
 
-`/caddie`, `/diary`, `/bet`, `/bet/:id`.
+`/caddie`, `/bet`, `/bet/:id`.

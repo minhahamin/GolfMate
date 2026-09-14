@@ -13,5 +13,9 @@ DB 스키마가 바뀌어도 API 계약을 독립적으로 관리할 수 있다.
   `score` 또는 `holes` 중 하나는 반드시 있어야 한다는 검증(`model_validator`)을 가진다.
 - `coach.py` — `CoachRequest`(질문, 선택), `CoachResponse`(5개 섹션: current_state,
   biggest_problem, cause, strategy, next_goal)
+- `diary.py` (Phase 6) — `DiaryListItem`(목록용: id, round_id, summary, mood, created_at),
+  `DiaryRead`(상세: round_summary 포함 5개 필드 + raw_text). 생성 요청은 JSON이 아니라
+  multipart/form-data(텍스트 또는 오디오 파일)라 `DiaryCreate` 모델은 없다 — 라우터가
+  `Form`/`File`을 직접 받는다.
 
 명명 규칙: `XxxCreate` / `XxxUpdate` / `XxxRead`.

@@ -4,6 +4,7 @@ Alembic autogenerate가 테이블 변경을 감지할 수 있다.
 from app.models.base import Base
 from app.models.course import Course
 from app.models.course_hole import CourseHole
+from app.models.diary import Diary
 from app.models.golf_knowledge import GolfKnowledge
 from app.models.golfer_profile import GolferProfile
 from app.models.hole import Hole
@@ -19,4 +20,5 @@ __all__ = [
     "Round",
     "Hole",
     "GolfKnowledge",
+    "Diary",
 ]

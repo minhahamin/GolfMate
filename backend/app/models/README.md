@@ -18,6 +18,12 @@
 - **Hole** (`hole.py`) — 라운드별 홀 실제 기록. `round_id`, `hole_number`, `par`, `score`,
   `putts`, `fairway_hit`, `gir`, `ob`, `bunker`, `penalty`. Shot(샷 단위) 테이블은 아직 없다 —
   필요해지면 `Hole` 아래에 1:N으로 추가하면 된다.
+- **GolfKnowledge** (`golf_knowledge.py`) — RAG용 골프 지식 (pgvector). `category`, `title`,
+  `content`, `embedding`(`Vector(384)`). 사용자 데이터가 아니라 RAG 전용이라 `user_id`가 없다.
+- **Diary** (`diary.py`, Phase 6) — AI 골프 일기. `user_id`, `round_id`(nullable — Round/Hole과
+  달리 소유(cascade) 관계가 아니라 느슨한 참조라 `ondelete="SET NULL"`을 쓴다. 라운드가
+  삭제돼도 일기는 남는다), `raw_text`(원문), `summary`/`mood`/`highlights`/
+  `improvement_points`/`next_goal`(AI가 정리한 구조화 필드).
 
 ## 새 모델을 추가할 때
 
@@ -26,5 +32,5 @@
    이걸 보고 변경을 감지한다).
 3. `alembic revision --autogenerate -m "..."`로 마이그레이션을 생성한다.
 
-향후 Phase 6+에서 `Diary`, `Group`, `Bet` 등의 모델이 이 패턴으로 추가된다 (전체 데이터 모델은
+향후 Phase 7+에서 `Group`, `Bet` 등의 모델이 이 패턴으로 추가된다 (전체 데이터 모델은
 루트 README의 ERD 참고).
