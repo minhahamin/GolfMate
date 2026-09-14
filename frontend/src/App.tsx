@@ -5,6 +5,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import { useAuth } from './context/AuthContext';
 import Coach from './pages/Coach';
 import CourseDetail from './pages/CourseDetail';
+import CourseRecommend from './pages/CourseRecommend';
 import Courses from './pages/Courses';
 import Dashboard from './pages/Dashboard';
 import Diary from './pages/Diary';
@@ -35,6 +36,8 @@ function protect(element: ReactNode) {
 // Phase 3: 골프 데이터 라우트(/courses, /rounds, /profile)가 추가됐다.
 // Phase 4: /coach(AI Coach)가 추가됐다.
 // Phase 6: /diary(AI 골프 일기)가 추가됐다.
+// Phase 7: /courses/recommend(AI 골프장 추천)가 추가됐다 — /courses/:id보다 먼저 등록해야
+// "recommend"가 id로 오인되지 않는다.
 // Phase 1의 SystemStatus는 인프라 점검용으로 /status에 남겨둔다.
 export default function App() {
   return (
@@ -49,6 +52,7 @@ export default function App() {
       <Route path="/rounds/new" element={protect(<RoundNew />)} />
       <Route path="/rounds/:id" element={protect(<RoundDetail />)} />
       <Route path="/courses" element={protect(<Courses />)} />
+      <Route path="/courses/recommend" element={protect(<CourseRecommend />)} />
       <Route path="/courses/:id" element={protect(<CourseDetail />)} />
       <Route path="/diary" element={protect(<Diary />)} />
       <Route path="/diary/new" element={protect(<DiaryNew />)} />

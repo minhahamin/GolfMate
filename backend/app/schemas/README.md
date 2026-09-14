@@ -17,5 +17,8 @@ DB 스키마가 바뀌어도 API 계약을 독립적으로 관리할 수 있다.
   `DiaryRead`(상세: round_summary 포함 5개 필드 + raw_text). 생성 요청은 JSON이 아니라
   multipart/form-data(텍스트 또는 오디오 파일)라 `DiaryCreate` 모델은 없다 — 라우터가
   `Form`/`File`을 직접 받는다.
+- `recommend.py` (Phase 7) — `CourseRecommendationRequest`(region/difficulty/max_budget/
+  preference_text, 모두 선택), `CourseRecommendation`(`CourseRead` + reason),
+  `CourseRecommendationResponse`(summary + 순위별 추천 목록)
 
 명명 규칙: `XxxCreate` / `XxxUpdate` / `XxxRead`.

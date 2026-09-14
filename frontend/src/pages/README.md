@@ -17,8 +17,10 @@
 - `RoundNew.tsx` (`/rounds/new`, 보호됨) — 코스 선택 + 기본 정보 + 선택적 18홀 상세 입력
   테이블(체크하면 총타수를 홀 점수 합으로 자동 계산)
 - `RoundDetail.tsx` (`/rounds/:id`, 보호됨) — 라운드 정보 + 홀 테이블 + AI 분석(계산 기반) 통계
-- `Courses.tsx` (`/courses`, 보호됨) — 골프장 목록
-- `CourseDetail.tsx` (`/courses/:id`, 보호됨) — 골프장 정보 + 홀별 파/거리 테이블
+- `Courses.tsx` (`/courses`, 보호됨) — 골프장 목록(난이도/평균 그린피 포함), AI 추천받기 버튼
+- `CourseRecommend.tsx` (`/courses/recommend`, 보호됨, Phase 7) — 지역/난이도/예산/선호
+  텍스트 조건 입력 → AI가 실제 후보 중 최대 3곳을 순위/이유와 함께 추천
+- `CourseDetail.tsx` (`/courses/:id`, 보호됨) — 골프장 정보 + 난이도/그린피/태그 + 홀별 파/거리 테이블
 - `Diary.tsx` (`/diary`, 보호됨) — 내 AI 일기 목록 (날짜/기분/요약 미리보기)
 - `DiaryNew.tsx` (`/diary/new`, 보호됨) — 텍스트 입력 또는 마이크 녹음(`useAudioRecorder`)으로
   일기 작성, 선택적 라운드 드롭다운(비워두면 AI가 최근 라운드 중에서 자동 매칭)

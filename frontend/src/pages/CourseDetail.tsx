@@ -24,8 +24,18 @@ export default function CourseDetail() {
       {course.description && <p className="mt-4 text-sm text-ink-soft">{course.description}</p>}
 
       <p className="mt-4 font-mono text-sm text-ink-soft">
-        {course.holes_count}홀, 파{course.par}
+        {course.holes_count}홀, 파{course.par} · 난이도 {course.difficulty}
+        {course.green_fee_avg != null && ` · 평균 그린피 ${course.green_fee_avg.toLocaleString()}원`}
       </p>
+      {course.tags && (
+        <p className="mt-2 flex flex-wrap gap-2 text-xs text-ink-soft">
+          {course.tags.split(',').map((tag) => (
+            <span key={tag} className="border border-ink/15 px-2 py-0.5">
+              {tag}
+            </span>
+          ))}
+        </p>
+      )}
 
       <section className="mt-6 overflow-x-auto border border-ink/15 p-4">
         <table className="w-full min-w-[480px] text-sm">

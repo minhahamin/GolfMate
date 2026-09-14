@@ -19,8 +19,9 @@ app/ai/
 ├── stt/
 │   └── transcriber.py     # 로컬 faster-whisper로 음성 → 텍스트 전사 (Phase 6)
 ├── prompts/
-│   ├── coach/system.py    # Coach 프롬프트 템플릿 (Role→Goal→Data→Rules→Format)
-│   └── diary/system.py    # Diary 프롬프트 템플릿 (Phase 6)
+│   ├── coach/system.py     # Coach 프롬프트 템플릿 (Role→Goal→Data→Rules→Format)
+│   ├── diary/system.py     # Diary 프롬프트 템플릿 (Phase 6)
+│   └── recommend/system.py # 골프장 추천 프롬프트 템플릿 (Phase 7)
 ├── rag/
 │   ├── embeddings.py      # 로컬 sentence-transformers 임베딩 (multilingual-e5-small)
 │   ├── knowledge_data.py  # 시드용 골프 지식 원본 데이터 (규칙/스윙/퍼팅/코스매니지먼트/에티켓)
@@ -29,10 +30,14 @@ app/ai/
 │   ├── state.py           # GolfCoachState (TypedDict)
 │   ├── graph.py           # Coach LangGraph 정의 + 실행 함수
 │   └── parser.py          # LLM 응답을 5개 섹션으로 텍스트 파싱
-└── diary/
-    ├── state.py           # DiaryState (TypedDict) — Phase 6
-    ├── graph.py           # Diary LangGraph 정의 + 실행 함수 — Phase 6
-    └── parser.py          # LLM 응답을 6개 섹션(5개 필드+매칭라운드)으로 텍스트 파싱 — Phase 6
+├── diary/
+│   ├── state.py           # DiaryState (TypedDict) — Phase 6
+│   ├── graph.py           # Diary LangGraph 정의 + 실행 함수 — Phase 6
+│   └── parser.py          # LLM 응답을 6개 섹션(5개 필드+매칭라운드)으로 텍스트 파싱 — Phase 6
+└── recommend/
+    ├── state.py           # RecommendState (TypedDict) — Phase 7
+    ├── graph.py           # 골프장 추천 LangGraph 정의 + 실행 함수 — Phase 7
+    └── parser.py          # LLM 응답을 순위별 추천 목록으로 텍스트 파싱 — Phase 7
 ```
 
 ## Coach Graph (Phase 4~5, 구현 완료)
@@ -117,11 +122,32 @@ START
 - Coach와 동일한 LLM 클라이언트(`get_coach_llm()`)를 그대로 재사용한다 — 별도 클라이언트를
   만들지 않았다.
 
-## 예정 구조 (Phase 7+)
+## Course Recommendation Graph (Phase 7, 구현 완료)
 
-- **Course Recommendation Graph** (Phase 7): Preference Analyzer → Course Search Tool →
-  Filter → Recommendation Agent → Ranking (실존하지 않는 골프장을 LLM이 만들어내지 않도록,
-  후보는 항상 DB/외부 API에서 가져온 것만 사용)
+```text
+START
+ → get_golfer_profile        (golfer_profile_repository 재사용, LLM 없음)
+ → search_candidate_courses  (course_repository.search — region/difficulty/max_budget으로
+                               필터링된 실제 DB 후보만 가져온다, LLM 없음)
+ → recommendation_generation (유일한 LLM 호출 — 후보 중 최대 3곳 순위/이유 생성)
+ → recommendation_validator  (규칙 기반: 후보 목록에 없는 id는 버림 — 환각 방지)
+ → END
+```
+
+- 실데이터 연동을 "실제 외부 유료/가입 API"가 아니라 "실제 DB 레코드 기반 검색"으로
+  구현했다 — 무료로 쓸 수 있는 신뢰할 만한 국내 골프장 API를 확보하지 못해, 대신
+  `courses` 테이블을 10곳으로 확장하고 `difficulty`/`green_fee_avg`/`tags` 필드를 추가해
+  진짜 필터링 가능한 후보 검색을 만들었다 (`app/seed_courses.py`). 나중에 공공데이터포털
+  같은 실제 API 키가 생기면 `course_repository.search`의 데이터 소스만 교체하면 된다.
+- Coach/Diary와 같은 환각 방지 원칙: LLM은 `search_candidate_courses`가 이미 필터링한
+  후보 중에서만 고르고, `recommendation_validator`가 후보 목록에 없는 id를 최종적으로
+  한 번 더 걸러낸다.
+- 후보가 하나도 없으면(필터 조건이 너무 좁음) LLM을 호출하지 않고 바로 안내 문구를
+  반환한다.
+- Coach와 동일한 LLM 클라이언트(`get_coach_llm()`)를 재사용한다.
+
+## 예정 구조 (Phase 8+)
+
 - **Caddie Graph** (Phase 8): Get Profile → Get Course/Hole → Get Weather → Hole Analysis →
   Risk Analysis → Club Strategy → Validator — 여기서 본격적인 Tool Calling 도입 예정
 - **Bet Analysis Graph** (Phase 9): Get Group/Members/Rounds → Statistics → Bet Rule Engine

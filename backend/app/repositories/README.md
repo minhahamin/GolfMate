@@ -7,7 +7,8 @@ Service는 SQLAlchemy Session이나 쿼리문을 직접 다루지 않고, 이 �
 
 - `user_repository.py` — `get_by_email`, `get_by_id`, `create`
 - `golfer_profile_repository.py` — `get_by_user_id`, `create_empty`, `update`
-- `course_repository.py` — `list_all`, `get_by_id`(홀 목록까지 eager load)
+- `course_repository.py` — `list_all`, `get_by_id`(홀 목록까지 eager load), `search`(Phase 7 —
+  region/difficulty/max_budget으로 필터링, AI 추천은 이 함수가 돌려준 후보 밖으로 나가지 않는다)
 - `round_repository.py` — `list_by_user`, `list_recent_by_user`(통계용, 홀 eager load),
   `get_by_id_for_user`(**반드시 user_id로 필터** — 다른 사용자 라운드는 절대 반환하지 않는다),
   `create`, `replace_holes`, `update_fields`, `delete`

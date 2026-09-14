@@ -7,9 +7,11 @@
 
 - `health.ts` — `HealthStatus` (`GET /api/health/db` 응답)
 - `auth.ts` — `User`, `AuthResponse`, `GolferProfile`, `GolferProfileUpdate`
-- `course.ts` — `Course`, `CourseHole`, `CourseDetail`
+- `course.ts` — `Course`(difficulty/green_fee_avg/tags 포함, Phase 7), `CourseHole`, `CourseDetail`
 - `round.ts` — `HoleInput`/`HoleRead`, `Round`/`RoundListItem`, `RoundCreatePayload`/
   `RoundUpdatePayload`, `RoundAnalysis`, `StatisticsSummary`
 - `coach.ts` — `CoachResponse` (5개 섹션)
 - `diary.ts` (Phase 6) — `DiaryListItem`, `Diary`(5개 AI 필드 + round_summary + raw_text),
   `DiaryCreatePayload`(text/audioBlob/roundId — multipart 전송용이라 Round와 달리 camelCase)
+- `recommend.ts` (Phase 7) — `CourseRecommendationRequest`, `CourseRecommendation`(Course +
+  reason), `CourseRecommendationResponse`

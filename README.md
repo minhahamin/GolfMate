@@ -85,7 +85,7 @@ golf_knowledge (pgvector, RAG 전용)
 | 4 | AI Coach (LangChain/LangGraph) | ✅ 완료 |
 | 5 | RAG (골프 지식, pgvector) | ✅ 완료 (로컬 + Railway) |
 | 6 | AI Golf Diary (STT + Structured Extraction) | ✅ 완료 |
-| 7 | 골프장 추천 (실데이터 연동) | 예정 |
+| 7 | 골프장 추천 (실데이터 연동) | ✅ 완료 |
 | 8 | AI Caddie (Course/Hole/Weather/Risk) | 예정 |
 | 9 | Golf Bet Analysis (그룹/정산/AI Commentary) | 예정 |
 | 10 | Langfuse (Tracing/Prompt Management/Evaluation) | 예정 |
@@ -104,7 +104,7 @@ golf_knowledge (pgvector, RAG 전용)
   스코어카드 행(row) 느낌을 냅니다. 18홀처럼 실제 순서가 있는 데이터에만 번호를 쓰고,
   장식적인 라벨/화살표/가운뎃점 메타 표기는 걷어냈습니다.
 
-## 현재 상태 (Phase 6까지)
+## 현재 상태 (Phase 7까지)
 
 - FastAPI 앱과 PostgreSQL이 Docker Compose(로컬)와 Railway(배포)로 연결되고,
   `GET /api/health/db`가 실제 DB 커넥션을 확인합니다.
@@ -145,6 +145,13 @@ golf_knowledge (pgvector, RAG 전용)
   않으면 AI가 최근 라운드 후보 중에서 자동으로 매칭하되, 후보 목록에 없는 라운드는 절대
   만들어내지 않습니다(환각 방지). STT 실패는 422, LLM 실패는 Coach와 동일하게 폴백 텍스트로
   응답하며 원문은 항상 저장됩니다.
+- **골프장 추천**이 동작합니다. `/courses/recommend`에서 지역/난이도/예산/자유 선호 조건을
+  입력하면, `course_repository.search`가 실제 `courses` DB에서 조건에 맞는 후보만 걸러내고
+  LangGraph(`app/ai/recommend/graph.py`)가 그 후보 중 최대 3곳을 순위와 이유를 붙여
+  추천합니다. 후보 목록 밖의 골프장은 LLM이 답해도 검증 단계에서 버려지고(환각 방지),
+  조건에 맞는 곳이 하나도 없으면 LLM 호출 없이 바로 안내 문구로 응답합니다. 유료 외부
+  골프장 API 없이, `courses` 테이블을 10곳으로 확장하고 난이도·평균 그린피·특징 태그를
+  채워 넣는 방식으로 "실데이터 연동"을 구현했습니다.
 
 ## 배포 (Railway)
 

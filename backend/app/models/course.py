@@ -26,6 +26,12 @@ class Course(Base):
     holes_count: Mapped[int] = mapped_column(Integer, default=18)
     par: Mapped[int] = mapped_column(Integer, default=72)
 
+    # Phase 7 골프장 추천용 필드 — search_service가 이 값들로 후보를 필터링하고,
+    # LLM에게는 필터링된 후보만 넘겨 실존하지 않는 골프장을 추천하지 않게 한다.
+    difficulty: Mapped[str] = mapped_column(String(20), nullable=False, default="중급")
+    green_fee_avg: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    tags: Mapped[str | None] = mapped_column(String(255), nullable=True)  # 콤마 구분, 예: "바다전망,링크스"
+
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     holes: Mapped[list["CourseHole"]] = relationship(

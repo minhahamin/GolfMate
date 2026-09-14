@@ -9,8 +9,9 @@
   `handicap`, `average_score`, `driver_distance`, `iron_distance`, `putting_average`,
   `fairway_percentage`, `gir_percentage`, `preferred_tee`, `goal_score`.
 - **Course** (`course.py`) — 골프장 기본 정보 (`name`, `region`, `address`, `description`,
-  `holes_count`, `par`). Phase 3은 `seed_courses.py`로 넣은 mock 데이터만 쓰고, Phase 7에서
-  실제 API/DB로 교체돼도 이 테이블 구조는 유지된다.
+  `holes_count`, `par`). `seed_courses.py`로 넣은 mock 데이터를 쓴다. Phase 7에서 추천용
+  필드 `difficulty`, `green_fee_avg`, `tags`(콤마 구분)를 추가해 `course_repository.search`가
+  실제 후보를 필터링할 수 있게 했다 — 실제 외부 API로 교체돼도 이 구조는 유지된다.
 - **CourseHole** (`course_hole.py`) — 코스의 홀별 고정 정보(`hole_number`, `par`,
   `distance_meters`). 라운드 실제 기록인 `Hole`과는 다른 테이블이다.
 - **Round** (`round.py`) — 사용자가 실제로 플레이한 라운드. `user_id`, `course_id`,

@@ -8,10 +8,18 @@ export default function Courses() {
 
   return (
     <Layout>
-      <h1 className="font-display text-3xl text-ink">골프장</h1>
-      <p className="mt-1 text-sm text-ink-soft">
-        지금은 데모용 코스 목록입니다. 실제 골프장 데이터 연동은 이후 Phase에서 추가됩니다.
-      </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="font-display text-3xl text-ink">골프장</h1>
+          <p className="mt-1 text-sm text-ink-soft">지금은 데모용 코스 목록입니다.</p>
+        </div>
+        <Link
+          to="/courses/recommend"
+          className="bg-flag px-4 py-2 text-sm font-medium text-paper transition hover:bg-flag-deep"
+        >
+          🤖 AI 추천받기
+        </Link>
+      </div>
 
       {isLoading ? (
         <p className="mt-8 text-sm text-ink-soft">불러오는 중...</p>
@@ -26,8 +34,13 @@ export default function Courses() {
               <p className="font-display text-lg text-ink">{course.name}</p>
               <p className="text-sm text-ink-soft">{course.region}</p>
               <p className="mt-3 font-mono text-sm text-ink-soft">
-                {course.holes_count}홀, 파{course.par}
+                {course.holes_count}홀, 파{course.par} · 난이도 {course.difficulty}
               </p>
+              {course.green_fee_avg != null && (
+                <p className="mt-1 font-mono text-sm text-ink-soft">
+                  평균 그린피 {course.green_fee_avg.toLocaleString()}원
+                </p>
+              )}
             </Link>
           ))}
         </div>

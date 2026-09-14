@@ -23,5 +23,7 @@
   `{ isRecording, durationSec, audioBlob, error, start(), stop(), reset() }`을 반환한다.
   이 프로젝트에 처음 들어간 오디오 캡처라 서버 데이터 훅이 아니라 브라우저 API를 감싼
   훅이다 (react-query 미사용).
+- `useRecommend.ts` (Phase 7) — `useCourseRecommendation`(`useMutation`) — `useCoach.ts`와
+  동일한 패턴.
 
-Phase 7+에서 비슷한 패턴으로 다른 AI 기능 훅이 추가된다.
+Phase 8+에서 비슷한 패턴으로 다른 AI 기능 훅이 추가된다.

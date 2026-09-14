@@ -35,6 +35,10 @@
     (`app/ai/stt/transcriber.py`). 텍스트/오디오 둘 다 없으면 400, 오디오 전사에 실패하면
     422, 그 외에는 LLM 실패도 폴백 텍스트로 201 응답에 담긴다(원문은 항상 저장됨).
   - `GET /api/diaries/{diary_id}` / `DELETE` — 상세/삭제 (다른 사용자 것은 404)
+- `routers/recommend.py` (`get_current_user` 의존, Phase 7)
+  - `POST /api/ai/recommend-courses` — 지역/난이도/예산/자유 선호 조건으로 필터링된 실제
+    `courses` DB 후보 중에서 AI가 최대 3곳을 순위/이유와 함께 추천 (LangGraph,
+    `app/ai/recommend/graph.py`). 후보가 없으면 LLM 호출 없이 바로 안내 응답.
 
 ## 앞으로 추가될 라우터 (마스터 스펙 §20 기준)
 

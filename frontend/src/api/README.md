@@ -17,6 +17,8 @@
   roundId? })`, `deleteDiary(id)`. `createDiary`는 `FormData`로 보낸다(텍스트 또는 오디오
   파일, 선택적 round_id) — 백엔드가 STT+LLM을 순차로 거치므로 타임아웃을 60초로 오버라이드.
   `getDiaryRequestErrorMessage`가 422(STT 실패)/400(내용 없음) 등 일기 전용 에러를 매핑한다.
+- `recommend.ts` (Phase 7) — `postCourseRecommendation(payload)` — coach.ts와 같은 패턴
+  (타임아웃 35초, `getRecommendRequestErrorMessage`).
 
 각 파일은 `apiClient`를 이용해 실제 HTTP 호출만 담당한다 (에러 처리/캐싱은 `hooks/`에서,
 로그인 상태 반영은 `context/AuthContext.tsx`에서).
