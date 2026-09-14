@@ -147,8 +147,7 @@ golf_knowledge (pgvector, RAG 전용)
 |---|---|
 | `GolfMate` (backend) | `backend/Dockerfile` — 부팅 시 마이그레이션+코스+데모계정+골프지식(RAG) 시드 자동 실행 |
 | `golfmate-frontend` | `frontend/Dockerfile`(운영용, nginx 정적 서빙) — 로컬 개발은 `Dockerfile.dev` 사용 |
-| `golfmate-pgvector` | `pgvector/pgvector:pg16` 이미지로 배포한 Postgres (볼륨 `/pgdata`, `PGDATA=/pgdata/pgdata`로 지정 — 마운트 루트에 바로 initdb하면 `lost+found`로 인해 실패하므로 하위 디렉터리 사용). `GolfMate`의 `DATABASE_URL`이 이 서비스를 가리킴 |
-| `Postgres` | Railway 기본 플러그인(pgvector 미지원) — `golfmate-pgvector`로 전환 후 더 이상 사용하지 않음, 삭제 여부 결정 대기 중 |
+| `golfmate-pgvector` | `pgvector/pgvector:pg16` 이미지로 배포한 Postgres (볼륨 `/pgdata`, `PGDATA=/pgdata/pgdata`로 지정 — 마운트 루트에 바로 initdb하면 `lost+found`로 인해 실패하므로 하위 디렉터리 사용). `GolfMate`의 `DATABASE_URL`이 이 서비스를 가리킴. Railway 기본 Postgres 플러그인(pgvector 미지원)은 이 서비스로 전환 후 삭제했음 |
 
 프론트는 빌드 시점에 `VITE_API_BASE_URL`을 백엔드 공개 URL로 굽고, 백엔드 `CORS_ORIGINS`는
 프론트 공개 URL을 허용하도록 설정되어 있습니다.

@@ -36,8 +36,15 @@ docker compose up --build
 모노레포라 루트에서 자동 빌드가 안 되므로 `backend/`를 root로 CLI 업로드 배포한다:
 
 ```bash
+railway add --image pgvector/pgvector:pg16 --service golfmate-pgvector   # pgvector 지원 DB (Phase 5 RAG용)
+railway volume add --mount-path /pgdata --json                          # 마운트 루트에 바로 initdb하면 lost+found로 실패하므로 하위 디렉터리 사용
+railway variable set "POSTGRES_USER=golfmate" --service golfmate-pgvector
+railway variable set "POSTGRES_DB=golfmate" --service golfmate-pgvector
+railway variable set "POSTGRES_PASSWORD=<openssl rand -hex 24 등으로 생성>" --service golfmate-pgvector
+railway variable set "PGDATA=/pgdata/pgdata" --service golfmate-pgvector
+
 railway up backend --path-as-root --service GolfMate --ci
-railway variable set "DATABASE_URL=${{Postgres.DATABASE_URL}}" --service GolfMate
+railway variable set "DATABASE_URL=postgresql+psycopg2://golfmate:<위 비밀번호>@golfmate-pgvector.railway.internal:5432/golfmate" --service GolfMate
 railway variable set "JWT_SECRET_KEY=<openssl rand -hex 32 등으로 생성>" --service GolfMate
 railway variable set "JWT_ALGORITHM=HS256" --service GolfMate
 railway variable set "JWT_EXPIRE_MINUTES=1440" --service GolfMate
