@@ -18,10 +18,13 @@ app/ai/
 │   └── client.py         # OpenRouter(OpenAI 호환 API)로 ChatOpenAI 구성
 ├── stt/
 │   └── transcriber.py     # 로컬 faster-whisper로 음성 → 텍스트 전사 (Phase 6)
+├── weather/
+│   └── client.py           # Open-Meteo(무료, 키 불필요)로 실시간 날씨 조회 (Phase 8)
 ├── prompts/
 │   ├── coach/system.py     # Coach 프롬프트 템플릿 (Role→Goal→Data→Rules→Format)
 │   ├── diary/system.py     # Diary 프롬프트 템플릿 (Phase 6)
-│   └── recommend/system.py # 골프장 추천 프롬프트 템플릿 (Phase 7)
+│   ├── recommend/system.py # 골프장 추천 프롬프트 템플릿 (Phase 7)
+│   └── caddie/system.py    # 캐디 프롬프트 템플릿 (Phase 8)
 ├── rag/
 │   ├── embeddings.py      # 로컬 sentence-transformers 임베딩 (multilingual-e5-small)
 │   ├── knowledge_data.py  # 시드용 골프 지식 원본 데이터 (규칙/스윙/퍼팅/코스매니지먼트/에티켓)
@@ -34,10 +37,14 @@ app/ai/
 │   ├── state.py           # DiaryState (TypedDict) — Phase 6
 │   ├── graph.py           # Diary LangGraph 정의 + 실행 함수 — Phase 6
 │   └── parser.py          # LLM 응답을 6개 섹션(5개 필드+매칭라운드)으로 텍스트 파싱 — Phase 6
-└── recommend/
-    ├── state.py           # RecommendState (TypedDict) — Phase 7
-    ├── graph.py           # 골프장 추천 LangGraph 정의 + 실행 함수 — Phase 7
-    └── parser.py          # LLM 응답을 순위별 추천 목록으로 텍스트 파싱 — Phase 7
+├── recommend/
+│   ├── state.py           # RecommendState (TypedDict) — Phase 7
+│   ├── graph.py           # 골프장 추천 LangGraph 정의 + 실행 함수 — Phase 7
+│   └── parser.py          # LLM 응답을 순위별 추천 목록으로 텍스트 파싱 — Phase 7
+└── caddie/
+    ├── state.py           # CaddieState (TypedDict) — Phase 8
+    ├── graph.py           # 캐디 LangGraph 정의 + 실행 함수 — Phase 8
+    └── parser.py          # LLM 응답을 3개 섹션으로 텍스트 파싱 — Phase 8
 ```
 
 ## Coach Graph (Phase 4~5, 구현 완료)
@@ -146,10 +153,35 @@ START
   반환한다.
 - Coach와 동일한 LLM 클라이언트(`get_coach_llm()`)를 재사용한다.
 
-## 예정 구조 (Phase 8+)
+## Caddie Graph (Phase 8, 구현 완료)
 
-- **Caddie Graph** (Phase 8): Get Profile → Get Course/Hole → Get Weather → Hole Analysis →
-  Risk Analysis → Club Strategy → Validator — 여기서 본격적인 Tool Calling 도입 예정
+```text
+START
+ → get_golfer_profile (golfer_profile_repository 재사용, LLM 없음)
+ → get_weather          (Open-Meteo 실제 API 호출 — app/ai/weather/client.py, LLM 없음)
+ → caddie_generation     (유일한 LLM 호출 — 홀공략/위험요소/클럽전략을 한 번에 생성)
+ → caddie_validator      (규칙 기반: 응답이 비어있으면 폴백)
+ → END
+```
+
+- course/hole은 라우터(`app/api/routers/caddie.py`)가 먼저 조회해 초기 state로 넘긴다 —
+  골프장은 공개 데이터라 Coach/Diary처럼 user_id로 필터링할 필요가 없고, 대신 존재하지
+  않는 course_id/hole_number는 라우터에서 바로 404로 끊는다.
+- 날씨는 **Open-Meteo**(가입/API 키 불필요, 완전 무료)로 실제 좌표 기반 실시간 데이터를
+  가져온다 — STT가 로컬 faster-whisper를 쓰는 것과 같은 "과금 없이 진짜 외부 데이터"
+  원칙을 날씨에도 적용했다. 좌표는 `app/seed_courses.py`에 각 코스 지역의 실제 위경도로
+  미리 채워 넣었다 (`Course.latitude`/`longitude`, Phase 7의 좌표 없는 구코스는 "좌표
+  미등록" 안내로 자연스럽게 폴백).
+  - 날씨 API 호출이 실패해도(`WeatherFetchError`) 전체 요청을 막지 않고 "날씨 정보를
+    가져오지 못했습니다"로 계속 진행한다 — Coach/Diary의 "부분 실패해도 200" 원칙과 동일.
+- 로드맵에서 예고했던 Tool Calling(공식 LangChain `@tool`)은 아직 도입하지 않았다 —
+  Coach/Diary/Recommend와 같은 이유로, 지금은 고정된 파이프라인이라 LLM이 동적으로 도구를
+  선택할 필요가 없다. 더 에이전틱한 기능(예: 사용자가 자유 질문으로 여러 홀을 넘나드는
+  대화형 캐디)이 필요해지면 이 서비스 함수들을 `@tool`로 감싸는 방향으로 확장하면 된다.
+- Coach와 동일한 LLM 클라이언트(`get_coach_llm()`)를 재사용한다.
+
+## 예정 구조 (Phase 9+)
+
 - **Bet Analysis Graph** (Phase 9): Get Group/Members/Rounds → Statistics → Bet Rule Engine
   (Python 정산) → AI Commentary (LLM은 설명만, 금액 계산은 하지 않음)
 - **Langfuse** (Phase 10): 모든 그래프의 Trace/Span/Generation/Token/Latency를 추적

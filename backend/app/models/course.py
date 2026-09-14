@@ -6,7 +6,7 @@ API/DB로 교체될 때도 이 테이블 구조(및 CourseHole)는 그대로 유
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, Integer, String, Text, func
+from sqlalchemy import DateTime, Float, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
@@ -31,6 +31,10 @@ class Course(Base):
     difficulty: Mapped[str] = mapped_column(String(20), nullable=False, default="중급")
     green_fee_avg: Mapped[int | None] = mapped_column(Integer, nullable=True)
     tags: Mapped[str | None] = mapped_column(String(255), nullable=True)  # 콤마 구분, 예: "바다전망,링크스"
+
+    # Phase 8 AI 캐디용 — 실제 지역 좌표(Open-Meteo 등 외부 날씨 API 호출에 쓴다, 키 불필요).
+    latitude: Mapped[float | None] = mapped_column(Float, nullable=True)
+    longitude: Mapped[float | None] = mapped_column(Float, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 

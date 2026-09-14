@@ -86,7 +86,7 @@ golf_knowledge (pgvector, RAG 전용)
 | 5 | RAG (골프 지식, pgvector) | ✅ 완료 (로컬 + Railway) |
 | 6 | AI Golf Diary (STT + Structured Extraction) | ✅ 완료 |
 | 7 | 골프장 추천 (실데이터 연동) | ✅ 완료 |
-| 8 | AI Caddie (Course/Hole/Weather/Risk) | 예정 |
+| 8 | AI Caddie (Course/Hole/Weather/Risk) | ✅ 완료 |
 | 9 | Golf Bet Analysis (그룹/정산/AI Commentary) | 예정 |
 | 10 | Langfuse (Tracing/Prompt Management/Evaluation) | 예정 |
 
@@ -104,7 +104,7 @@ golf_knowledge (pgvector, RAG 전용)
   스코어카드 행(row) 느낌을 냅니다. 18홀처럼 실제 순서가 있는 데이터에만 번호를 쓰고,
   장식적인 라벨/화살표/가운뎃점 메타 표기는 걷어냈습니다.
 
-## 현재 상태 (Phase 7까지)
+## 현재 상태 (Phase 8까지)
 
 - FastAPI 앱과 PostgreSQL이 Docker Compose(로컬)와 Railway(배포)로 연결되고,
   `GET /api/health/db`가 실제 DB 커넥션을 확인합니다.
@@ -152,6 +152,12 @@ golf_knowledge (pgvector, RAG 전용)
   조건에 맞는 곳이 하나도 없으면 LLM 호출 없이 바로 안내 문구로 응답합니다. 유료 외부
   골프장 API 없이, `courses` 테이블을 10곳으로 확장하고 난이도·평균 그린피·특징 태그를
   채워 넣는 방식으로 "실데이터 연동"을 구현했습니다.
+- **AI 캐디**가 동작합니다. `/caddie`에서 골프장과 홀을 고르면, **Open-Meteo**(가입/API 키
+  불필요, 완전 무료)로 그 코스의 실제 좌표 기준 현재 날씨를 조회하고, LangGraph
+  (`app/ai/caddie/graph.py`)가 골퍼 프로필(드라이버/아이언 평균 거리)과 홀 정보(파/거리),
+  실시간 날씨를 근거로 홀공략·위험요소·클럽전략 3개 섹션을 생성합니다. 날씨 조회가
+  실패해도(`날씨 정보를 가져오지 못했습니다`) 전체 요청은 계속 진행되고, LLM 실패도
+  Coach와 동일하게 폴백 텍스트로 200 응답합니다. 존재하지 않는 골프장/홀은 404입니다.
 
 ## 배포 (Railway)
 

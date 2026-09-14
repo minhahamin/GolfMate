@@ -20,5 +20,7 @@ DB 스키마가 바뀌어도 API 계약을 독립적으로 관리할 수 있다.
 - `recommend.py` (Phase 7) — `CourseRecommendationRequest`(region/difficulty/max_budget/
   preference_text, 모두 선택), `CourseRecommendation`(`CourseRead` + reason),
   `CourseRecommendationResponse`(summary + 순위별 추천 목록)
+- `caddie.py` (Phase 8) — `CaddieRequest`(course_id, hole_number, question 선택),
+  `CaddieResponse`(weather_summary + 3개 섹션: hole_analysis/risk_analysis/club_strategy)
 
 명명 규칙: `XxxCreate` / `XxxUpdate` / `XxxRead`.

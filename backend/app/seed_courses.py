@@ -28,6 +28,8 @@ MOCK_COURSES = [
         "difficulty": "초급",
         "green_fee_avg": 110000,
         "tags": "구릉지,초보자추천,넓은페어웨이",
+        "latitude": 37.2411,
+        "longitude": 127.1776,
     },
     {
         "name": "선셋베이 골프리조트",
@@ -38,6 +40,8 @@ MOCK_COURSES = [
         "difficulty": "고급",
         "green_fee_avg": 230000,
         "tags": "바다전망,링크스,바람강함",
+        "latitude": 33.2541,
+        "longitude": 126.5601,
     },
     {
         "name": "파인밸리 골프클럽",
@@ -48,6 +52,8 @@ MOCK_COURSES = [
         "difficulty": "고급",
         "green_fee_avg": 150000,
         "tags": "산악,소나무숲,고저차큼",
+        "latitude": 37.8813,
+        "longitude": 127.7298,
     },
     {
         "name": "레이크사이드 컨트리클럽",
@@ -58,6 +64,8 @@ MOCK_COURSES = [
         "difficulty": "중급",
         "green_fee_avg": 140000,
         "tags": "호수전망,워터해저드,평탄한코스",
+        "latitude": 37.2748,
+        "longitude": 127.1156,
     },
     {
         "name": "오션뷰 골프앤리조트",
@@ -68,6 +76,8 @@ MOCK_COURSES = [
         "difficulty": "고급",
         "green_fee_avg": 210000,
         "tags": "바다전망,해안절벽,포토스팟",
+        "latitude": 35.2443,
+        "longitude": 129.2226,
     },
     {
         "name": "선샤인힐스 컨트리클럽",
@@ -78,6 +88,8 @@ MOCK_COURSES = [
         "difficulty": "초급",
         "green_fee_avg": 95000,
         "tags": "초보자추천,넓은그린,가성비",
+        "latitude": 36.6424,
+        "longitude": 127.4890,
     },
     {
         "name": "베이사이드 골프클럽",
@@ -88,6 +100,8 @@ MOCK_COURSES = [
         "difficulty": "중급",
         "green_fee_avg": 120000,
         "tags": "평지,공항인근,바람적음",
+        "latitude": 37.4602,
+        "longitude": 126.4407,
     },
     {
         "name": "스카이릿지 컨트리클럽",
@@ -98,6 +112,8 @@ MOCK_COURSES = [
         "difficulty": "고급",
         "green_fee_avg": 160000,
         "tags": "고지대,능선코스,조망우수",
+        "latitude": 35.8562,
+        "longitude": 129.2247,
     },
     {
         "name": "가든밸리 컨트리클럽",
@@ -108,6 +124,8 @@ MOCK_COURSES = [
         "difficulty": "초급",
         "green_fee_avg": 100000,
         "tags": "조경우수,가족친화,평지",
+        "latitude": 34.9506,
+        "longitude": 127.4872,
     },
     {
         "name": "리버사이드 골프클럽",
@@ -118,6 +136,8 @@ MOCK_COURSES = [
         "difficulty": "중급",
         "green_fee_avg": 130000,
         "tags": "강전망,전략적티샷,중급자추천",
+        "latitude": 37.2984,
+        "longitude": 127.6378,
     },
 ]
 
@@ -128,12 +148,14 @@ def run() -> None:
         for course_data in MOCK_COURSES:
             existing = db.query(Course).filter(Course.name == course_data["name"]).first()
             if existing is not None:
-                # Phase 7 이전에 만들어진 코스는 difficulty/green_fee_avg/tags가 비어있을 수
-                # 있어, 새 필드만 멱등적으로 채워 넣는다 (기존 라운드 데이터를 건드리지 않음).
+                # Phase 7/8 이전에 만들어진 코스는 새 필드가 비어있을 수 있어, 그 필드만
+                # 멱등적으로 채워 넣는다 (기존 라운드 데이터를 건드리지 않음).
                 existing.difficulty = course_data["difficulty"]
                 existing.green_fee_avg = course_data["green_fee_avg"]
                 existing.tags = course_data["tags"]
-                print(f"이미 존재함, 추천 필드만 갱신: {course_data['name']}")
+                existing.latitude = course_data["latitude"]
+                existing.longitude = course_data["longitude"]
+                print(f"이미 존재함, 추천/날씨 필드만 갱신: {course_data['name']}")
                 continue
 
             course = Course(
@@ -146,6 +168,8 @@ def run() -> None:
                 difficulty=course_data["difficulty"],
                 green_fee_avg=course_data["green_fee_avg"],
                 tags=course_data["tags"],
+                latitude=course_data["latitude"],
+                longitude=course_data["longitude"],
             )
             db.add(course)
             db.flush()

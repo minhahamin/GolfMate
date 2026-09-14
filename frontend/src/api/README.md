@@ -19,6 +19,8 @@
   `getDiaryRequestErrorMessage`가 422(STT 실패)/400(내용 없음) 등 일기 전용 에러를 매핑한다.
 - `recommend.ts` (Phase 7) — `postCourseRecommendation(payload)` — coach.ts와 같은 패턴
   (타임아웃 35초, `getRecommendRequestErrorMessage`).
+- `caddie.ts` (Phase 8) — `postCaddieAdvice(payload)`. 날씨 조회 + LLM을 순차로 거치므로
+  타임아웃 45초(`getCaddieRequestErrorMessage`, 404를 "골프장/홀을 찾을 수 없음"으로 매핑).
 
 각 파일은 `apiClient`를 이용해 실제 HTTP 호출만 담당한다 (에러 처리/캐싱은 `hooks/`에서,
 로그인 상태 반영은 `context/AuthContext.tsx`에서).

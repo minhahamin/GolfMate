@@ -15,3 +15,4 @@
   `DiaryCreatePayload`(text/audioBlob/roundId — multipart 전송용이라 Round와 달리 camelCase)
 - `recommend.ts` (Phase 7) — `CourseRecommendationRequest`, `CourseRecommendation`(Course +
   reason), `CourseRecommendationResponse`
+- `caddie.ts` (Phase 8) — `CaddieRequest`, `CaddieResponse`(weather_summary + 3개 섹션)

@@ -39,8 +39,12 @@
   - `POST /api/ai/recommend-courses` — 지역/난이도/예산/자유 선호 조건으로 필터링된 실제
     `courses` DB 후보 중에서 AI가 최대 3곳을 순위/이유와 함께 추천 (LangGraph,
     `app/ai/recommend/graph.py`). 후보가 없으면 LLM 호출 없이 바로 안내 응답.
+- `routers/caddie.py` (`get_current_user` 의존, Phase 8)
+  - `POST /api/ai/caddie` — 골프장/홀/선택적 질문을 받아 Open-Meteo 실시간 날씨를 반영한
+    홀공략/위험요소/클럽전략을 생성 (LangGraph, `app/ai/caddie/graph.py`). 존재하지 않는
+    골프장/홀은 404, 날씨 조회 실패나 LLM 실패는 폴백으로 200 응답.
 
 ## 앞으로 추가될 라우터 (마스터 스펙 §20 기준)
 
-`ai/caddie`, `groups`, `bets`.
+`groups`, `bets`.
 각 라우터는 요청 검증 → service 호출 → 응답 반환만 담당하고, 비즈니스 로직은 갖지 않는다.

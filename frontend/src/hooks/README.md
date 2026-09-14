@@ -25,5 +25,6 @@
   훅이다 (react-query 미사용).
 - `useRecommend.ts` (Phase 7) — `useCourseRecommendation`(`useMutation`) — `useCoach.ts`와
   동일한 패턴.
+- `useCaddie.ts` (Phase 8) — `useCaddie`(`useMutation`) — `useCoach.ts`와 동일한 패턴.
 
-Phase 8+에서 비슷한 패턴으로 다른 AI 기능 훅이 추가된다.
+Phase 9+에서 비슷한 패턴으로 다른 AI 기능 훅이 추가된다.
