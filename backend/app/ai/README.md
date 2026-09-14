@@ -78,9 +78,12 @@ START
 "한국어로만 작성" 규칙을 넣어 완화했지만 완전히 없애지는 못한다. 더 안정적인 무료 모델이
 나오면 `OPENROUTER_MODEL` 환경변수만 바꾸면 된다.
 
-**알려진 한계(RAG)**: 로컬 개발(Docker Compose)의 Postgres 이미지는 `pgvector/pgvector:pg16`으로
-pgvector가 포함되어 있지만, Railway에 배포된 Postgres 플러그인은 아직 pgvector가 설치되어
-있지 않다 — 별도의 pgvector 지원 Postgres 서비스로 교체하는 배포 작업이 필요하다.
+로컬 개발(Docker Compose)과 Railway 배포 모두 `pgvector/pgvector:pg16` 이미지를 쓴다. Railway의
+기본 Postgres 플러그인에는 pgvector가 없어서, `golfmate-pgvector`라는 별도 서비스를
+`pgvector/pgvector:pg16` 이미지로 새로 만들고 백엔드 `DATABASE_URL`을 그쪽으로 옮겼다
+(루트 [`README.md`](../../../README.md)의 "배포 (Railway)" 절 참고). 볼륨을 데이터 디렉터리
+루트(`/var/lib/postgresql/data`)에 직접 마운트하면 `lost+found` 디렉터리 때문에 `initdb`가
+실패하므로, 볼륨은 `/pgdata`에 마운트하고 `PGDATA=/pgdata/pgdata`(하위 디렉터리)로 지정했다.
 
 ## 예정 구조 (Phase 6+)
 

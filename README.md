@@ -82,7 +82,7 @@ golf_knowledge (pgvector, RAG 전용)
 | 2 | 회원가입/로그인 (JWT), Golfer Profile | ✅ 완료 |
 | 3 | 골프 데이터 (Course/Round/Hole/Statistics) — AI 없이 먼저 동작 | ✅ 완료 |
 | 4 | AI Coach (LangChain/LangGraph) | ✅ 완료 |
-| 5 | RAG (골프 지식, pgvector) | ✅ 완료 (로컬) — Railway 배포 전환은 별도 진행 예정 |
+| 5 | RAG (골프 지식, pgvector) | ✅ 완료 (로컬 + Railway) |
 | 6 | AI Golf Diary (STT + Structured Extraction) | 예정 |
 | 7 | 골프장 추천 (실데이터 연동) | 예정 |
 | 8 | AI Caddie (Course/Hole/Weather/Risk) | 예정 |
@@ -134,8 +134,8 @@ golf_knowledge (pgvector, RAG 전용)
   `sentence-transformers`(API 키 불필요)로 임베딩해 `golf_knowledge` 테이블(pgvector)에
   저장하고, AI Coach가 답하기 전에 질문과 관련된 지식을 검색해 프롬프트에 근거로 넣습니다 —
   LLM이 검증되지 않은 골프 규칙을 지어내지 않도록 막는 용도입니다. 자세한 구조는
-  [`backend/app/ai/README.md`](backend/app/ai/README.md) 참고. **로컬 Docker Compose에만
-  적용되어 있고, Railway 배포 환경은 아직 pgvector가 없어 별도 전환 작업이 필요합니다.**
+  [`backend/app/ai/README.md`](backend/app/ai/README.md) 참고. 로컬 Docker Compose와
+  Railway(`golfmate-pgvector` 서비스, 아래 배포 절 참고) 양쪽 모두에 적용되어 있습니다.
 
 ## 배포 (Railway)
 
@@ -145,9 +145,10 @@ golf_knowledge (pgvector, RAG 전용)
 
 | 서비스 | 내용 |
 |---|---|
-| `GolfMate` (backend) | `backend/Dockerfile` — 부팅 시 마이그레이션+코스+데모계정 시드 자동 실행 |
+| `GolfMate` (backend) | `backend/Dockerfile` — 부팅 시 마이그레이션+코스+데모계정+골프지식(RAG) 시드 자동 실행 |
 | `golfmate-frontend` | `frontend/Dockerfile`(운영용, nginx 정적 서빙) — 로컬 개발은 `Dockerfile.dev` 사용 |
-| `Postgres` | Railway 플러그인 |
+| `golfmate-pgvector` | `pgvector/pgvector:pg16` 이미지로 배포한 Postgres (볼륨 `/pgdata`, `PGDATA=/pgdata/pgdata`로 지정 — 마운트 루트에 바로 initdb하면 `lost+found`로 인해 실패하므로 하위 디렉터리 사용). `GolfMate`의 `DATABASE_URL`이 이 서비스를 가리킴 |
+| `Postgres` | Railway 기본 플러그인(pgvector 미지원) — `golfmate-pgvector`로 전환 후 더 이상 사용하지 않음, 삭제 여부 결정 대기 중 |
 
 프론트는 빌드 시점에 `VITE_API_BASE_URL`을 백엔드 공개 URL로 굽고, 백엔드 `CORS_ORIGINS`는
 프론트 공개 URL을 허용하도록 설정되어 있습니다.
