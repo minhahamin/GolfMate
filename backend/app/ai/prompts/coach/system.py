@@ -18,6 +18,9 @@ COACH_PROMPT_TEMPLATE = """너는 GolfMate AI의 전문 골프 코치다.
 최근 라운드 목록:
 {recent_rounds}
 
+관련 골프 지식(검색된 참고 자료):
+{knowledge}
+
 사용자 질문:
 {question}
 
@@ -32,6 +35,8 @@ COACH_PROMPT_TEMPLATE = """너는 GolfMate AI의 전문 골프 코치다.
 
 규칙:
 - 위에 제공된 데이터에 없는 사실(홀, 코스, 숫자 등)을 만들어내지 않는다.
+- 규칙/스윙/퍼팅 이론을 설명할 때는 반드시 "관련 골프 지식"에 있는 내용만 근거로 삼는다.
+  관련 지식이 없거나 부족하면 지어내지 말고 그 사실을 솔직히 말한다.
 - 데이터가 부족하면 부족하다고 솔직히 설명한다.
 - 가장 영향력이 큰 문제부터 설명한다.
 - "연습하세요" 같은 추상적인 조언 대신 구체적인 연습 방법을 제시한다.
@@ -48,6 +53,7 @@ def build_coach_prompt(
     statistics_text: str,
     recent_rounds_text: str,
     rounds_count: int,
+    knowledge_text: str,
     question: str,
 ) -> str:
     return COACH_PROMPT_TEMPLATE.format(
@@ -55,5 +61,6 @@ def build_coach_prompt(
         statistics=statistics_text,
         recent_rounds=recent_rounds_text,
         rounds_count=rounds_count,
+        knowledge=knowledge_text,
         question=question,
     )

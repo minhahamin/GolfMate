@@ -45,7 +45,7 @@ LLM 애플리케이션을 실제 서비스 아키텍처 안에서 다루는 것�
 
 - **사용자 개인 데이터**(라운드 기록, 프로필, 내기 결과 등)와 **골프 지식 데이터**(규칙, 이론,
   코스 매니지먼트)는 저장소 수준에서 분리됩니다 — 전자는 PostgreSQL 일반 테이블, 후자는
-  pgvector 임베딩입니다 (Phase 5에서 도입).
+  pgvector 임베딩입니다 (Phase 5에서 도입, 로컬 환경 기준).
 - 모든 AI 기능은 LangGraph의 명시적인 State Graph로 구현되어, 각 단계(노드)가 무엇을 하는지
   추적 가능합니다. Langfuse로 모든 LLM 호출의 Trace/Token/Latency를 기록합니다 (Phase 10).
 
@@ -71,8 +71,8 @@ users ──1:N── ai_sessions ──1:N── ai_messages / ai_recommendatio
 golf_knowledge (pgvector, RAG 전용)
 ```
 
-`users`, `golfer_profiles`, `courses`, `course_holes`, `rounds`, `holes`까지 구현되어
-있습니다. 나머지 테이블은 해당 기능이 구현되는 Phase에서 순차적으로 추가됩니다.
+`users`, `golfer_profiles`, `courses`, `course_holes`, `rounds`, `holes`, `golf_knowledge`까지
+구현되어 있습니다. 나머지 테이블은 해당 기능이 구현되는 Phase에서 순차적으로 추가됩니다.
 
 ## 개발 로드맵
 
@@ -82,7 +82,7 @@ golf_knowledge (pgvector, RAG 전용)
 | 2 | 회원가입/로그인 (JWT), Golfer Profile | ✅ 완료 |
 | 3 | 골프 데이터 (Course/Round/Hole/Statistics) — AI 없이 먼저 동작 | ✅ 완료 |
 | 4 | AI Coach (LangChain/LangGraph) | ✅ 완료 |
-| 5 | RAG (골프 지식, pgvector) | 예정 |
+| 5 | RAG (골프 지식, pgvector) | ✅ 완료 (로컬) — Railway 배포 전환은 별도 진행 예정 |
 | 6 | AI Golf Diary (STT + Structured Extraction) | 예정 |
 | 7 | 골프장 추천 (실데이터 연동) | 예정 |
 | 8 | AI Caddie (Course/Hole/Weather/Risk) | 예정 |
@@ -103,7 +103,7 @@ golf_knowledge (pgvector, RAG 전용)
   스코어카드 행(row) 느낌을 냅니다. 18홀처럼 실제 순서가 있는 데이터에만 번호를 쓰고,
   장식적인 라벨/화살표/가운뎃점 메타 표기는 걷어냈습니다.
 
-## 현재 상태 (Phase 4까지)
+## 현재 상태 (Phase 5까지)
 
 - FastAPI 앱과 PostgreSQL이 Docker Compose(로컬)와 Railway(배포)로 연결되고,
   `GET /api/health/db`가 실제 DB 커넥션을 확인합니다.
@@ -130,6 +130,12 @@ golf_knowledge (pgvector, RAG 전용)
   생성합니다. LLM은 OpenRouter의 무료 모델을 쓰고, 계산(통계)은 Phase 3의
   `statistics_service.py`를 그대로 재사용합니다 — LLM은 판단/설명만 담당합니다.
   라운드가 없거나 LLM 호출이 실패해도 500 대신 안내 메시지로 응답합니다.
+- **RAG**가 동작합니다. 골프 규칙/스윙/퍼팅/코스 매니지먼트/에티켓 지식을 로컬
+  `sentence-transformers`(API 키 불필요)로 임베딩해 `golf_knowledge` 테이블(pgvector)에
+  저장하고, AI Coach가 답하기 전에 질문과 관련된 지식을 검색해 프롬프트에 근거로 넣습니다 —
+  LLM이 검증되지 않은 골프 규칙을 지어내지 않도록 막는 용도입니다. 자세한 구조는
+  [`backend/app/ai/README.md`](backend/app/ai/README.md) 참고. **로컬 Docker Compose에만
+  적용되어 있고, Railway 배포 환경은 아직 pgvector가 없어 별도 전환 작업이 필요합니다.**
 
 ## 배포 (Railway)
 

@@ -1,6 +1,7 @@
 services:
   db:
-    image: postgres:16-alpine
+    # postgres:16-alpine의 pgvector 지원 드롭인 이미지 (Phase 5 RAG용 vector 확장 포함)
+    image: pgvector/pgvector:pg16
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-golfmate}

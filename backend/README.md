@@ -79,6 +79,6 @@ docker compose exec backend pytest
 | `app/repositories/` | DB 접근 계층 |
 | `app/seed_courses.py` | mock 골프장 3개 시드 스크립트 |
 | `app/seed_demo_account.py` | 데모 계정 + 라운드 8개 시드 스크립트 |
-| `app/ai/` | LangGraph AI Coach (Phase 4), RAG/Caddie 등은 Phase 5+ |
+| `app/ai/` | LangGraph AI Coach (Phase 4) + RAG(Phase 5, pgvector). Caddie 등은 Phase 6+ |
 | `alembic/` | DB 마이그레이션 |
 | `tests/` | Pytest 테스트 |

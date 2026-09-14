@@ -19,5 +19,7 @@ def get_coach_llm() -> ChatOpenAI:
         base_url=settings.openrouter_base_url,
         temperature=0.4,
         timeout=30,
-        max_retries=1,
+        # 재시도를 하면 타임아웃 시 최악의 경우 30초*2가 되어 프론트엔드 타임아웃(35초, coach.ts)
+        # 보다 오래 걸릴 수 있다. 실패를 빠르게 확정하고 graph.py의 상세 폴백 메시지로 응답한다.
+        max_retries=0,
     )

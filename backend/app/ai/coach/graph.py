@@ -7,6 +7,7 @@
      -> intent_analyzer         (지금은 단일 코칭 흐름만 있어 통과만 시킴 — 확장 지점)
      -> get_golfer_profile      (profile 조회, LLM 없음)
      -> get_recent_rounds       (round_repository 재사용, LLM 없음)
+     -> retrieve_golf_knowledge (Phase 5 RAG: pgvector에서 질문과 관련된 골프 지식 검색, LLM 없음)
      -> statistics_analyzer     (Phase 3 statistics_service 재사용, LLM 없음)
      -> weakness_and_strategy   (유일한 LLM 호출)
      -> recommendation_validator (규칙 기반 검증/폴백)
@@ -16,12 +17,15 @@ import logging
 import time
 
 from langgraph.graph import END, START, StateGraph
+from openai import APIConnectionError, APIStatusError, APITimeoutError
 from sqlalchemy.orm import Session
 
 from app.ai.coach.parser import parse_coach_response
 from app.ai.coach.state import GolfCoachState
 from app.ai.llm.client import get_coach_llm
 from app.ai.prompts.coach.system import build_coach_prompt
+from app.ai.rag.retriever import retrieve_knowledge
+from app.models.golf_knowledge import GolfKnowledge
 from app.models.golfer_profile import GolferProfile
 from app.models.round import Round
 from app.repositories import golfer_profile_repository, round_repository
@@ -42,6 +46,40 @@ FALLBACK_LLM_ERROR: dict[str, str] = {
     "biggest_problem": "",
     "cause": "",
     "strategy": "잠시 후 다시 시도해주세요.",
+    "next_goal": "",
+}
+
+FALLBACK_RATE_LIMITED: dict[str, str] = {
+    "current_state": "지금 무료 AI 모델 사용량이 많아 요청이 거절되었습니다.",
+    "biggest_problem": "",
+    "cause": "",
+    "strategy": "OpenRouter 무료 모델의 분당/일일 사용량 한도에 도달했을 가능성이 높습니다. "
+    "몇 분 후 다시 시도하거나, 계속되면 OPENROUTER_MODEL을 다른 무료 모델로 바꿔보세요.",
+    "next_goal": "",
+}
+
+FALLBACK_QUOTA_EXCEEDED: dict[str, str] = {
+    "current_state": "AI 코치를 사용할 수 없습니다.",
+    "biggest_problem": "",
+    "cause": "",
+    "strategy": "연결된 OpenRouter 계정의 무료 크레딧/한도가 모두 소진된 것으로 보입니다. "
+    "OpenRouter 계정에서 잔여 크레딧을 확인해주세요.",
+    "next_goal": "",
+}
+
+FALLBACK_AUTH_ERROR: dict[str, str] = {
+    "current_state": "AI 코치 설정에 문제가 있어 응답을 생성하지 못했습니다.",
+    "biggest_problem": "",
+    "cause": "",
+    "strategy": "OPENROUTER_API_KEY가 비어있거나 올바르지 않을 수 있습니다. 서버 환경변수를 확인해주세요.",
+    "next_goal": "",
+}
+
+FALLBACK_TIMEOUT: dict[str, str] = {
+    "current_state": "AI 코치 응답 생성이 너무 오래 걸려 시간 초과되었습니다.",
+    "biggest_problem": "",
+    "cause": "",
+    "strategy": "무료 모델 서버가 혼잡한 상태일 수 있습니다. 잠시 후 다시 시도해주세요.",
     "next_goal": "",
 }
 
@@ -84,6 +122,12 @@ def _format_rounds(rounds: list[Round]) -> str:
     return "\n".join(f"- {r.round_date} {course_name(r)} {r.score}타" for r in rounds)
 
 
+def _format_knowledge(entries: list[GolfKnowledge]) -> str:
+    if not entries:
+        return "관련 지식 없음"
+    return "\n".join(f"- {entry.title}: {entry.content}" for entry in entries)
+
+
 def build_coach_graph(db: Session):
     """요청마다 이 DB 세션에 바인딩된 그래프를 새로 컴파일한다 (컴파일 비용은 가볍다)."""
 
@@ -101,6 +145,10 @@ def build_coach_graph(db: Session):
         rounds = round_repository.list_recent_by_user(db, state["user_id"], limit=10)
         return {"recent_rounds": rounds, "has_data": bool(rounds)}
 
+    def retrieve_golf_knowledge(state: GolfCoachState) -> dict:
+        knowledge = retrieve_knowledge(db, state["question"])
+        return {"retrieved_knowledge": knowledge}
+
     def statistics_analyzer(state: GolfCoachState) -> dict:
         if not state.get("has_data"):
             return {"statistics": {}}
@@ -116,6 +164,7 @@ def build_coach_graph(db: Session):
             statistics_text=_format_statistics(state.get("statistics") or {}),
             recent_rounds_text=_format_rounds(state["recent_rounds"]),
             rounds_count=len(state["recent_rounds"]),
+            knowledge_text=_format_knowledge(state.get("retrieved_knowledge") or []),
             question=state["question"],
         )
 
@@ -123,6 +172,23 @@ def build_coach_graph(db: Session):
         started = time.monotonic()
         try:
             response = llm.invoke(prompt)
+        except APITimeoutError:
+            logger.exception("coach_llm_call_timeout user_id=%s", state.get("user_id"))
+            return {"final_answer": FALLBACK_TIMEOUT, "error": "timeout"}
+        except APIConnectionError:
+            logger.exception("coach_llm_call_connection_failed user_id=%s", state.get("user_id"))
+            return {"final_answer": FALLBACK_LLM_ERROR, "error": "connection_error"}
+        except APIStatusError as exc:
+            logger.exception(
+                "coach_llm_call_api_error user_id=%s status=%s", state.get("user_id"), exc.status_code
+            )
+            if exc.status_code == 429:
+                return {"final_answer": FALLBACK_RATE_LIMITED, "error": "rate_limited"}
+            if exc.status_code == 402:
+                return {"final_answer": FALLBACK_QUOTA_EXCEEDED, "error": "quota_exceeded"}
+            if exc.status_code == 401:
+                return {"final_answer": FALLBACK_AUTH_ERROR, "error": "auth_error"}
+            return {"final_answer": FALLBACK_LLM_ERROR, "error": f"api_error_{exc.status_code}"}
         except Exception:
             logger.exception("coach_llm_call_failed user_id=%s", state.get("user_id"))
             return {"final_answer": FALLBACK_LLM_ERROR, "error": "llm_call_failed"}
@@ -145,6 +211,7 @@ def build_coach_graph(db: Session):
     graph.add_node("intent_analyzer", intent_analyzer)
     graph.add_node("get_golfer_profile", get_golfer_profile)
     graph.add_node("get_recent_rounds", get_recent_rounds)
+    graph.add_node("retrieve_golf_knowledge", retrieve_golf_knowledge)
     graph.add_node("statistics_analyzer", statistics_analyzer)
     graph.add_node("weakness_and_strategy", weakness_and_strategy)
     graph.add_node("recommendation_validator", recommendation_validator)
@@ -152,7 +219,8 @@ def build_coach_graph(db: Session):
     graph.add_edge(START, "intent_analyzer")
     graph.add_edge("intent_analyzer", "get_golfer_profile")
     graph.add_edge("get_golfer_profile", "get_recent_rounds")
-    graph.add_edge("get_recent_rounds", "statistics_analyzer")
+    graph.add_edge("get_recent_rounds", "retrieve_golf_knowledge")
+    graph.add_edge("retrieve_golf_knowledge", "statistics_analyzer")
     graph.add_edge("statistics_analyzer", "weakness_and_strategy")
     graph.add_edge("weakness_and_strategy", "recommendation_validator")
     graph.add_edge("recommendation_validator", END)

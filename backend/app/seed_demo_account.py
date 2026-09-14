@@ -15,7 +15,7 @@ from app.repositories import course_repository, golfer_profile_repository, round
 
 DEMO_EMAIL = "demo@golfmate.ai"
 DEMO_PASSWORD = "golfmate-demo!"
-DEMO_NAME = "데모 골퍼"
+DEMO_NAME = "김도현"
 
 # 최근 순으로 정렬해서 만들 라운드들: (며칠 전, 목표 스코어)
 DEMO_ROUNDS = [

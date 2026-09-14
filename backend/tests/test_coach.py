@@ -77,6 +77,35 @@ def test_coach_with_rounds_returns_parsed_sections(mock_get_llm):
 
 
 @patch("app.ai.coach.graph.get_coach_llm")
+def test_coach_prompt_includes_retrieved_golf_knowledge(mock_get_llm):
+    """Phase 5 RAG: OB 관련 질문이면 golf_knowledge에서 검색된 지식이 프롬프트에 들어가야 한다.
+
+    golf_knowledge 테이블은 app.seed_golf_knowledge로 컨테이너 부팅 시 미리 시드되어 있다고
+    가정한다 (Dockerfile CMD 참고).
+    """
+    mock_llm = MagicMock()
+    mock_llm.invoke.return_value = MagicMock(content=SAMPLE_LLM_RESPONSE)
+    mock_llm.model_name = "test-model"
+    mock_get_llm.return_value = mock_llm
+
+    token, _ = register_and_get_token(client)
+    course_id = seed_test_course()
+    _create_round(token, course_id)
+
+    response = client.post(
+        "/api/ai/coach",
+        headers=auth_headers(token),
+        json={"question": "OB 나면 어떻게 처리해야 하나요"},
+    )
+
+    assert response.status_code == 200
+    mock_llm.invoke.assert_called_once()
+    prompt = mock_llm.invoke.call_args[0][0]
+    assert "관련 골프 지식" in prompt
+    assert "아웃 오브 바운즈" in prompt or "OB" in prompt
+
+
+@patch("app.ai.coach.graph.get_coach_llm")
 def test_coach_llm_failure_returns_fallback(mock_get_llm):
     mock_llm = MagicMock()
     mock_llm.invoke.side_effect = RuntimeError("upstream timeout")

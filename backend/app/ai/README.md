@@ -18,25 +18,46 @@ app/ai/
 │   └── client.py         # OpenRouter(OpenAI 호환 API)로 ChatOpenAI 구성
 ├── prompts/coach/
 │   └── system.py         # Coach 프롬프트 템플릿 (Role→Goal→Data→Rules→Format)
+├── rag/
+│   ├── embeddings.py      # 로컬 sentence-transformers 임베딩 (multilingual-e5-small)
+│   ├── knowledge_data.py  # 시드용 골프 지식 원본 데이터 (규칙/스윙/퍼팅/코스매니지먼트/에티켓)
+│   └── retriever.py       # 질문 임베딩 → golf_knowledge_repository 검색
 └── coach/
     ├── state.py           # GolfCoachState (TypedDict)
     ├── graph.py           # Coach LangGraph 정의 + 실행 함수
     └── parser.py          # LLM 응답을 5개 섹션으로 텍스트 파싱
 ```
 
-## Coach Graph (Phase 4, 구현 완료)
+## Coach Graph (Phase 4~5, 구현 완료)
 
 ```text
 START
  → intent_analyzer         (빈 질문에 기본 질문 채우기 — 향후 다중 의도 라우팅 확장 지점)
  → get_golfer_profile       (golfer_profile_repository 재사용, LLM 없음)
  → get_recent_rounds        (round_repository.list_recent_by_user 재사용, LLM 없음)
+ → retrieve_golf_knowledge  (Phase 5: pgvector에서 질문과 관련된 골프 지식 검색, LLM 없음)
  → statistics_analyzer      (Phase 3 statistics_service.compute_statistics_summary 재사용,
                               LLM 없음 — 순수 계산)
  → weakness_and_strategy    (유일한 LLM 호출. §14 프롬프트로 5개 섹션을 한 번에 생성)
  → recommendation_validator (규칙 기반: 응답이 비어있으면 폴백 메시지로 교체)
  → END
 ```
+
+## RAG (Phase 5, 구현 완료)
+
+- 사용자 개인 데이터(PostgreSQL 일반 테이블)와 골프 지식(pgvector 임베딩)을 테이블 수준에서
+  분리했다 — `golf_knowledge` 테이블만 `embedding` 컬럼(pgvector `Vector(384)`)을 가진다.
+- 임베딩은 OpenRouter의 임베딩 API 없이, 로컬 `sentence-transformers`
+  (`intfloat/multilingual-e5-small`)로 API 키 없이 생성한다 — LLM도 무료 모델만 쓰는
+  기존 원칙과 일관된 선택이다.
+- `app/seed_golf_knowledge.py`가 `knowledge_data.py`의 항목을 임베딩해 시드한다 (Dockerfile
+  CMD에서 부팅 시 자동 실행, 제목 중복이면 건너뛰는 멱등적 스크립트).
+- Coach 그래프의 `retrieve_golf_knowledge` 노드가 질문을 임베딩해 코사인 거리 기준 상위 3개
+  지식 항목을 가져오고, 프롬프트의 "관련 골프 지식" 섹션에 그대로 넣는다. 프롬프트 규칙에
+  "이 섹션에 없는 규칙/이론을 지어내지 말 것"을 명시해, LLM이 검증되지 않은 골프 규칙을
+  만들어내지 않도록 한다.
+- 데이터 규모가 수십 건이라 ivfflat/hnsw 같은 근사 인덱스 없이 정확 코사인 거리 정렬만
+  사용한다. 항목이 크게 늘어나면 인덱스를 추가하면 된다.
 
 **설계 결정**:
 - 마스터 스펙 §11의 "약점 분석"과 "전략 생성"을 노드 하나(`weakness_and_strategy`)로
@@ -57,10 +78,12 @@ START
 "한국어로만 작성" 규칙을 넣어 완화했지만 완전히 없애지는 못한다. 더 안정적인 무료 모델이
 나오면 `OPENROUTER_MODEL` 환경변수만 바꾸면 된다.
 
-## 예정 구조 (Phase 5+)
+**알려진 한계(RAG)**: 로컬 개발(Docker Compose)의 Postgres 이미지는 `pgvector/pgvector:pg16`으로
+pgvector가 포함되어 있지만, Railway에 배포된 Postgres 플러그인은 아직 pgvector가 설치되어
+있지 않다 — 별도의 pgvector 지원 Postgres 서비스로 교체하는 배포 작업이 필요하다.
 
-- **RAG** (Phase 5): 골프 지식(규칙/용어/스윙/코스 매니지먼트)을 pgvector에 임베딩,
-  개인 데이터(PostgreSQL)와 지식 데이터(pgvector)를 분리 관리. `app/ai/rag/`
+## 예정 구조 (Phase 6+)
+
 - **Diary Graph** (Phase 6): STT → Diary Extraction → Round Matching → Emotion/Event
   Analysis → Diary Generation
 - **Course Recommendation Graph** (Phase 7): Preference Analyzer → Course Search Tool →

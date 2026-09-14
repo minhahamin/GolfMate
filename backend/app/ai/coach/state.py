@@ -14,6 +14,7 @@ class GolfCoachState(TypedDict, total=False):
     recent_rounds: list  # Round ORM 인스턴스 목록 (statistics_service가 그대로 소비)
     statistics: dict
     has_data: bool
+    retrieved_knowledge: list  # GolfKnowledge ORM 인스턴스 목록 (RAG 검색 결과)
 
     final_answer: dict[str, str]
     error: str | None

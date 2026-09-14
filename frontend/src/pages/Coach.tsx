@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 
+import { getCoachRequestErrorMessage } from '../api/coach';
 import Layout from '../components/Layout';
 import { useCoach } from '../hooks/useCoach';
 
@@ -43,14 +44,12 @@ export default function Coach() {
           disabled={coach.isPending}
           className="mt-4 bg-flag px-6 py-2.5 font-medium text-paper transition hover:bg-flag-deep disabled:opacity-50"
         >
-          {coach.isPending ? '분석 중... (최대 10초 정도 걸려요)' : '분석 받기'}
+          {coach.isPending ? '분석 중... (최대 30초 정도 걸려요)' : '분석 받기'}
         </button>
       </form>
 
       {coach.isError && (
-        <p className="mt-6 text-sm text-flag">
-          분석 요청에 실패했습니다. 잠시 후 다시 시도해주세요.
-        </p>
+        <p className="mt-6 text-sm text-flag">{getCoachRequestErrorMessage(coach.error)}</p>
       )}
 
       {coach.data && (
