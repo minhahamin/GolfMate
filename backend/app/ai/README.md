@@ -126,6 +126,10 @@ START
 - STT는 과금 없이 API 키 없이 쓸 수 있도록, RAG의 로컬 임베딩 모델과 같은 원칙으로
   로컬 `faster-whisper`(PyTorch 불필요, CTranslate2 기반)를 쓴다 (`app/ai/stt/transcriber.py`).
   원본 오디오는 전사 직후 폐기하고 서버에 저장하지 않는다.
+- 모델 크기는 `small`(기본값)이다 — `tiny`/`base`는 한국어 인식률이 눈에 띄게 떨어져서
+  실사용 테스트 중 오인식이 잦았다. `transcribe()`에 `vad_filter=True`도 켜서(Silero VAD)
+  무음/배경잡음 구간을 먼저 걸러내고 음성 구간만 전사한다 — 마이크와 거리가 있어 SNR이
+  낮은 녹음에서도 없는 말을 지어내는 오인식을 줄인다. 여전히 과금/API 키는 없다.
 - `diary_generation`이 최근 라운드 후보 목록(id 포함)을 프롬프트에 주고, LLM이 그중 하나를
   고르거나 "없음"을 답하게 한다 — 원칙("실존 정보는 LLM이 지어내지 않고 항상 실제 DB 후보
   중에서만 선택")을 그대로 적용. `diary_validator`가 LLM이 후보에 없는 id를 답해도(환각)

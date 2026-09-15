@@ -12,7 +12,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # faster-whisper 모델을 빌드 타임에 이미지 안에 구워 넣는다 — Railway 컨테이너는 재배포마다
 # 파일시스템이 초기화되므로, 이렇게 하지 않으면 배포 후 첫 STT 요청마다 모델을 새로 받아야 한다.
-RUN python -c "from faster_whisper import WhisperModel; WhisperModel('base', device='cpu', compute_type='int8')"
+# app/core/config.py의 WHISPER_MODEL_SIZE 기본값(small)과 반드시 맞춰야 한다.
+RUN python -c "from faster_whisper import WhisperModel; WhisperModel('small', device='cpu', compute_type='int8')"
 
 COPY . .
 

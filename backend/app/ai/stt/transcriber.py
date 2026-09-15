@@ -33,7 +33,9 @@ def transcribe_audio(audio_bytes: bytes, filename: str | None = None) -> str:
         tmp.write(audio_bytes)
         tmp.flush()
         try:
-            segments, _ = model.transcribe(tmp.name, language="ko")
+            # vad_filter: Silero VAD로 무음/잡음 구간을 먼저 걸러내고 음성 구간만 전사한다.
+            # 마이크에서 떨어져 말해 배경 잡음이 섞여도 없는 말을 지어내는 오인식이 줄어든다.
+            segments, _ = model.transcribe(tmp.name, language="ko", vad_filter=True)
             text = "".join(segment.text for segment in segments).strip()
         except Exception as exc:  # faster-whisper는 디코딩 실패 시 다양한 예외를 던진다
             raise SttTranscriptionError("음성을 인식하지 못했습니다.") from exc

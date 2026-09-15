@@ -26,8 +26,9 @@ class Settings(BaseSettings):
     openrouter_model: str = "nvidia/nemotron-3-super-120b-a12b:free"
 
     # AI 골프 일기(Phase 6)의 STT — 과금/API 키 없이 로컬 faster-whisper로 전사한다.
-    # 모델 크기를 키우면(예: small/medium) 한국어 인식 정확도는 오르지만 느려진다.
-    whisper_model_size: str = "base"
+    # base는 한국어 인식률이 눈에 띄게 낮아 small로 올렸다 (CPU에서 조금 더 느려지는 정도,
+    # 과금/API 키는 여전히 없음). 더 키우면(medium 이상) 정확도는 오르지만 응답이 느려진다.
+    whisper_model_size: str = "small"
 
     # Langfuse(Phase 10) — 모든 그래프의 LLM 호출 Trace/토큰/지연시간을 관측.
     # cloud.langfuse.com 무료 플랜 키를 쓴다 (셀프호스팅은 ClickHouse/Redis/MinIO까지
