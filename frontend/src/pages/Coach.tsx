@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 
 import { getCoachRequestErrorMessage } from '../api/coach';
 import Layout from '../components/Layout';
+import SpeakButton from '../components/SpeakButton';
 import { useCoach } from '../hooks/useCoach';
 
 const SECTIONS: { key: 'current_state' | 'biggest_problem' | 'cause' | 'strategy' | 'next_goal'; label: string }[] = [
@@ -53,17 +54,27 @@ export default function Coach() {
       )}
 
       {coach.data && (
-        <div className="mt-6 divide-y divide-ink/15 border-y border-ink/15">
-          {SECTIONS.map(({ key, label }) =>
-            coach.data![key] ? (
-              <div key={key} className="py-5">
-                <p className="font-display text-lg text-ink">{label}</p>
-                <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-ink-soft">
-                  {coach.data![key]}
-                </p>
-              </div>
-            ) : null,
-          )}
+        <div className="mt-6">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-ink-soft">분석 결과</p>
+            <SpeakButton
+              text={SECTIONS.map(({ key, label }) => (coach.data![key] ? `${label}. ${coach.data![key]}` : null))
+                .filter(Boolean)
+                .join('\n\n')}
+            />
+          </div>
+          <div className="mt-2 divide-y divide-ink/15 border-y border-ink/15">
+            {SECTIONS.map(({ key, label }) =>
+              coach.data![key] ? (
+                <div key={key} className="py-5">
+                  <p className="font-display text-lg text-ink">{label}</p>
+                  <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-ink-soft">
+                    {coach.data![key]}
+                  </p>
+                </div>
+              ) : null,
+            )}
+          </div>
         </div>
       )}
     </Layout>

@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 
 import { getCaddieRequestErrorMessage } from '../api/caddie';
 import Layout from '../components/Layout';
+import SpeakButton from '../components/SpeakButton';
 import { useCaddie } from '../hooks/useCaddie';
 import { useCourse, useCourses } from '../hooks/useCourses';
 
@@ -106,8 +107,22 @@ export default function Caddie() {
 
       {caddie.data && (
         <div className="mt-6">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-ink-soft">공략 결과 (라운드 중 손이 바쁠 때 들어보세요)</p>
+            <SpeakButton
+              text={[
+                caddie.data.weather_summary ? `현재 날씨. ${caddie.data.weather_summary}` : null,
+                ...SECTIONS.map(({ key, label }) =>
+                  caddie.data![key] ? `${label}. ${caddie.data![key]}` : null,
+                ),
+              ]
+                .filter(Boolean)
+                .join('\n\n')}
+            />
+          </div>
+
           {caddie.data.weather_summary && (
-            <p className="border border-ink/15 bg-paper-2 px-4 py-3 text-sm text-ink-soft">
+            <p className="mt-2 border border-ink/15 bg-paper-2 px-4 py-3 text-sm text-ink-soft">
               🌤 현재 날씨: {caddie.data.weather_summary}
             </p>
           )}

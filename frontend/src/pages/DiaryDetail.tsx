@@ -1,6 +1,7 @@
 import { useNavigate, useParams } from 'react-router-dom';
 
 import Layout from '../components/Layout';
+import SpeakButton from '../components/SpeakButton';
 import { useDeleteDiary, useDiary } from '../hooks/useDiary';
 
 const SECTIONS: { key: 'mood' | 'highlights' | 'improvement_points' | 'next_goal'; label: string }[] = [
@@ -37,7 +38,17 @@ export default function DiaryDetail() {
       </div>
 
       <section className="mt-6 border border-ink/15 p-6">
-        <h2 className="font-display text-lg text-ink">🤖 AI 정리</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="font-display text-lg text-ink">🤖 AI 정리</h2>
+          <SpeakButton
+            text={[
+              `요약. ${diary.summary}`,
+              ...SECTIONS.map(({ key, label }) => (diary[key] ? `${label}. ${diary[key]}` : null)),
+            ]
+              .filter(Boolean)
+              .join('\n\n')}
+          />
+        </div>
         <div className="mt-4 divide-y divide-ink/15">
           {SECTIONS.map(({ key, label }) =>
             diary[key] ? (

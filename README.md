@@ -57,7 +57,7 @@ LLM 애플리케이션을 실제 서비스 아키텍처 안에서 다루는 것�
 | Frontend | React, TypeScript, Vite, React Router, Tailwind CSS, Axios, TanStack Query, Recharts |
 | Backend | Python 3.12, FastAPI, Pydantic, SQLAlchemy, Alembic, PostgreSQL, JWT |
 | AI | LangChain, LangGraph, Langfuse(Tracing/Observability), OpenRouter(무료 LLM), Embedding Model, pgvector, RAG, Tool Calling |
-| Voice | STT — 로컬 faster-whisper (Phase 6, API 키/과금 없음). TTS는 아직 미도입 |
+| Voice | STT — 로컬 faster-whisper(Phase 6, API 키/과금 없음). TTS — 브라우저 내장 Web Speech API(과금 없음) |
 | Infra | Docker, Docker Compose, Nginx(배포 단계에서 도입) |
 
 ## 데이터 모델 (개요)
@@ -176,6 +176,12 @@ golf_knowledge (pgvector, RAG 전용)
   쓸 수 있습니다 — Coach 등이 LLM 실패 시 폴백하는 것과 같은 "관측 때문에 핵심 기능이 막히지
   않는다"는 원칙입니다. Prompt Management/Evaluation(Langfuse의 나머지 기능)은 아직 도입하지
   않았습니다.
+- **TTS(읽어주기)**가 동작합니다. 백엔드 API나 별도 음성 모델 없이, 브라우저 내장
+  **Web Speech API**(`speechSynthesis`)를 `useTextToSpeech` 훅으로 감싸고, Coach/Caddie/
+  DiaryDetail 페이지의 "🔊 읽어주기" 버튼(`SpeakButton`)이 AI 분석 결과를 소리 내어
+  읽어줍니다. 특히 AI 캐디는 라운드 중 손이 바쁠 때 화면을 보지 않고도 공략을 들을 수
+  있다는 게 핵심 사용 시나리오입니다. STT(faster-whisper)와 마찬가지로 API 키/과금이
+  전혀 없고, 브라우저가 지원하지 않으면 버튼 자체가 표시되지 않습니다.
 
 ## 배포 (Railway)
 

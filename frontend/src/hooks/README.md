@@ -34,3 +34,8 @@
   동일한 패턴.
 
 Phase 10(Langfuse)은 새 프론트엔드 훅이 필요 없다 — 백엔드 트레이싱만 추가된다.
+
+- `useTextToSpeech.ts` (TTS) — 브라우저 내장 Web Speech API(`speechSynthesis`)를 감싼 훅.
+  `useAudioRecorder.ts`와 같은 이유로 서버 데이터가 아니라 브라우저 API를 다뤄 react-query를
+  쓰지 않는다. `{ isSupported, isSpeaking, speak(text), stop() }`을 반환하고, 서버 TTS
+  없이 클라이언트에서만 합성해 과금이 발생하지 않는다.
