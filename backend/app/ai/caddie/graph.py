@@ -22,6 +22,7 @@ from sqlalchemy.orm import Session
 from app.ai.caddie.parser import parse_caddie_response
 from app.ai.caddie.state import CaddieState
 from app.ai.llm.client import get_coach_llm
+from app.ai.llm.observability import build_langfuse_config
 from app.ai.prompts.caddie.system import build_caddie_prompt
 from app.ai.weather.client import WeatherFetchError, format_weather_summary, get_current_weather
 from app.models.course import Course
@@ -166,7 +167,8 @@ def run_caddie_graph(
 ) -> dict:
     graph = build_caddie_graph(db)
     result: CaddieState = graph.invoke(
-        {"user_id": user_id, "course": course, "hole": hole, "question": question}
+        {"user_id": user_id, "course": course, "hole": hole, "question": question},
+        config=build_langfuse_config("caddie", user_id),
     )
     return {
         "hole_analysis": result["hole_analysis"],

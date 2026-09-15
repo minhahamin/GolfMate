@@ -17,6 +17,7 @@ from openai import APIConnectionError, APIStatusError, APITimeoutError
 
 from app.ai.bet.state import BetCommentaryState
 from app.ai.llm.client import get_coach_llm
+from app.ai.llm.observability import build_langfuse_config
 from app.ai.prompts.bet.system import build_bet_commentary_prompt
 from app.models.bet import Bet
 
@@ -102,5 +103,8 @@ def build_bet_commentary_graph():
 
 def run_bet_commentary_graph(user_id: int, bet: Bet) -> str:
     graph = build_bet_commentary_graph()
-    result: BetCommentaryState = graph.invoke({"user_id": user_id, "bet": bet})
+    result: BetCommentaryState = graph.invoke(
+        {"user_id": user_id, "bet": bet},
+        config=build_langfuse_config("bet_commentary", user_id),
+    )
     return result["commentary"]

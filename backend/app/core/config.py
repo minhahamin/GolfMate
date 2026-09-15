@@ -29,6 +29,15 @@ class Settings(BaseSettings):
     # 모델 크기를 키우면(예: small/medium) 한국어 인식 정확도는 오르지만 느려진다.
     whisper_model_size: str = "base"
 
+    # Langfuse(Phase 10) — 모든 그래프의 LLM 호출 Trace/토큰/지연시간을 관측.
+    # cloud.langfuse.com 무료 플랜 키를 쓴다 (셀프호스팅은 ClickHouse/Redis/MinIO까지
+    # 필요해 이 프로젝트의 "과금 없이 가벼운 인프라" 원칙과 맞지 않는다).
+    # Public/Secret Key가 비어있으면 langfuse SDK가 자동으로 no-op(전송 없음)로 동작하므로
+    # 로컬에서 계정을 안 만들어도 나머지 AI 기능은 그대로 동작한다.
+    langfuse_public_key: str = ""
+    langfuse_secret_key: str = ""
+    langfuse_host: str = "https://cloud.langfuse.com"
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]

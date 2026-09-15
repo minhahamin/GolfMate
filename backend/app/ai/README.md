@@ -15,7 +15,8 @@ User → React → FastAPI → LangGraph → Agent/Tool/RAG → LLM → Validati
 ```text
 app/ai/
 ├── llm/
-│   └── client.py         # OpenRouter(OpenAI 호환 API)로 ChatOpenAI 구성
+│   ├── client.py         # OpenRouter(OpenAI 호환 API)로 ChatOpenAI 구성
+│   └── observability.py   # Langfuse CallbackHandler 초기화 + config 빌더 (Phase 10)
 ├── stt/
 │   └── transcriber.py     # 로컬 faster-whisper로 음성 → 텍스트 전사 (Phase 6)
 ├── weather/
@@ -93,8 +94,9 @@ START
 - Tool Calling(§16)은 아직 본격적으로 쓰지 않는다 — 지금은 고정된 파이프라인이라 LLM이
   동적으로 도구를 선택할 필요가 없다. Phase 8(Caddie)처럼 더 에이전틱한 기능이 필요할 때
   LangChain `@tool`로 이 서비스 함수들을 감싸면 된다.
-- Langfuse(§18)는 로드맵대로 Phase 10에서 정식 도입한다. 지금은 `logging`으로 모델명/
-  지연시간/성공여부만 남긴다 (`app/ai/coach/graph.py`의 `logger.info`).
+- Langfuse(§18)는 Phase 10에서 정식 도입했다(아래 "Langfuse Observability" 절 참고).
+  `logging`(`app/ai/coach/graph.py`의 `logger.info`)은 로컬 콘솔에서 바로 보는 용도로
+  그대로 남겨두고, Langfuse는 Trace 단위로 구조화된 기록을 Cloud에 보관하는 역할을 한다.
 
 **알려진 한계**: `OPENROUTER_MODEL` 기본값(`nvidia/nemotron-3-super-120b-a12b:free`)은
 가끔 한국어 답변에 다른 언어 단어가 한두 개 섞여 나올 수 있다 (무료 모델의 특성). 프롬프트에
@@ -204,9 +206,30 @@ START
   state로 넘긴다 (Caddie의 course/hole과 동일한 패턴).
 - Coach와 동일한 LLM 클라이언트(`get_coach_llm()`)를 재사용한다.
 
-## 예정 구조 (Phase 10+)
+## Langfuse Observability (Phase 10, Tracing 구현 완료)
 
-- **Langfuse** (Phase 10): 모든 그래프의 Trace/Span/Generation/Token/Latency를 추적
+- 모든 그래프가 이미 `get_coach_llm()` 하나로 LLM 호출을 모아 쓰고 있어서, 계측도 그래프별
+  프롬프트/파서를 손대지 않고 `graph.invoke()`가 받는 `config`에 Langfuse
+  `CallbackHandler`(`app/ai/llm/observability.py`의 `get_langfuse_handler()`)만 얹는
+  방식으로 5개 그래프(Coach/Diary/Recommend/Caddie/Bet Commentary) 전체에 동일하게
+  적용했다. `build_langfuse_config(graph_name, user_id)`가 그래프 이름을 Trace 이름으로,
+  `user_id`를 Langfuse의 사용자 필드로 넣어 Trace를 구분한다.
+- **셀프호스팅이 아니라 Langfuse Cloud 무료 플랜**을 쓴다 — 셀프호스팅은 ClickHouse+
+  Redis+MinIO+Postgres까지 필요해, OpenRouter/Open-Meteo/로컬 STT·임베딩처럼 이 프로젝트
+  전체가 따르는 "과금 없이 가벼운 인프라로 실제 서비스 검증" 원칙과 맞지 않는다고 판단했다.
+- `LANGFUSE_PUBLIC_KEY`/`LANGFUSE_SECRET_KEY`가 비어있으면 langfuse SDK가 **자동으로
+  no-op 클라이언트**가 된다(경고 로그만 남기고 네트워크 호출 없음) — 계정을 만들지 않은
+  로컬 개발/테스트 환경에서도 AI 기능 자체는 그대로 동작한다. Coach 등이 LLM 호출 실패 시
+  폴백 텍스트로 응답하는 것과 같은 "관측 기능 하나 때문에 핵심 기능이 막히지 않는다"는
+  원칙을 그대로 적용한 것이다.
+- `Langfuse(...)` 싱글턴을 먼저 명시적으로 생성한 뒤(`_get_langfuse_client()`)
+  `CallbackHandler()`를 만들어야 같은 설정(키/host)을 재사용한다 — SDK가 public_key를
+  캐시 키로 싱글턴을 관리하기 때문이다.
+- FastAPI `lifespan`(`app/main.py`)에서 앱 종료 시 `flush_langfuse()`를 호출해, 배치로
+  모아뒀다 아직 전송 안 된 span이 컨테이너 종료(Railway 재배포 등)로 유실되지 않게 한다.
+- Prompt Management/Evaluation(Langfuse의 나머지 두 축)은 아직 도입하지 않았다 — 지금은
+  프롬프트가 각 그래프의 `prompts/*/system.py`에 코드로 고정되어 있어 버전 관리 필요성이
+  낮고, Evaluation은 실제 사용자 피드백이 쌓인 뒤에 붙이는 게 더 의미가 있다고 판단했다.
 
 ## State 설계 원칙
 

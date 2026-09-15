@@ -47,7 +47,8 @@ LLM 애플리케이션을 실제 서비스 아키텍처 안에서 다루는 것�
   코스 매니지먼트)는 저장소 수준에서 분리됩니다 — 전자는 PostgreSQL 일반 테이블, 후자는
   pgvector 임베딩입니다 (Phase 5에서 도입, 로컬 환경 기준).
 - 모든 AI 기능은 LangGraph의 명시적인 State Graph로 구현되어, 각 단계(노드)가 무엇을 하는지
-  추적 가능합니다. Langfuse로 모든 LLM 호출의 Trace/Token/Latency를 기록합니다 (Phase 10).
+  추적 가능합니다. Langfuse(Cloud 무료 플랜)로 5개 그래프 전체의 Trace/Token/Latency를
+  기록합니다 (Phase 10).
 
 ## 기술 스택
 
@@ -55,7 +56,7 @@ LLM 애플리케이션을 실제 서비스 아키텍처 안에서 다루는 것�
 |---|---|
 | Frontend | React, TypeScript, Vite, React Router, Tailwind CSS, Axios, TanStack Query, Recharts |
 | Backend | Python 3.12, FastAPI, Pydantic, SQLAlchemy, Alembic, PostgreSQL, JWT |
-| AI | LangChain, LangGraph, Langfuse(Phase 10), OpenRouter(무료 LLM), Embedding Model, pgvector, RAG, Tool Calling |
+| AI | LangChain, LangGraph, Langfuse(Tracing/Observability), OpenRouter(무료 LLM), Embedding Model, pgvector, RAG, Tool Calling |
 | Voice | STT — 로컬 faster-whisper (Phase 6, API 키/과금 없음). TTS는 아직 미도입 |
 | Infra | Docker, Docker Compose, Nginx(배포 단계에서 도입) |
 
@@ -88,7 +89,7 @@ golf_knowledge (pgvector, RAG 전용)
 | 7 | 골프장 추천 (실데이터 연동) | ✅ 완료 |
 | 8 | AI Caddie (Course/Hole/Weather/Risk) | ✅ 완료 |
 | 9 | Golf Bet Analysis (그룹/정산/AI Commentary) | ✅ 완료 |
-| 10 | Langfuse (Tracing/Prompt Management/Evaluation) | 예정 |
+| 10 | Langfuse (Tracing/Prompt Management/Evaluation) | ✅ 완료 (Tracing) |
 
 ## 디자인
 
@@ -104,7 +105,7 @@ golf_knowledge (pgvector, RAG 전용)
   스코어카드 행(row) 느낌을 냅니다. 18홀처럼 실제 순서가 있는 데이터에만 번호를 쓰고,
   장식적인 라벨/화살표/가운뎃점 메타 표기는 걷어냈습니다.
 
-## 현재 상태 (Phase 9까지)
+## 현재 상태 (Phase 10까지)
 
 - FastAPI 앱과 PostgreSQL이 Docker Compose(로컬)와 Railway(배포)로 연결되고,
   `GET /api/health/db`가 실제 DB 커넥션을 확인합니다.
@@ -166,6 +167,15 @@ golf_knowledge (pgvector, RAG 전용)
   단독으로 검증하는 테스트(`tests/test_bet_settlement.py`)를 따로 뒀습니다. `/bets/:id`의
   "코멘터리 받기" 버튼을 누르면 AI가 이미 계산된 정산 결과를 유쾌하게 설명해주는데,
   숫자를 다시 계산하거나 지어내지 않고 주어진 값만 언급하도록 프롬프트에서 강제합니다.
+- **Langfuse 관측**이 동작합니다. Coach/Diary/Recommend/Caddie/Bet Commentary 5개 그래프
+  전부 `graph.invoke()`에 Langfuse `CallbackHandler`를 config로 얹어(`app/ai/llm/observability.py`)
+  Trace/Span/Generation(모델명·토큰·지연시간)을 Langfuse Cloud 무료 플랜으로 보냅니다. 그래프
+  이름과 `user_id`를 메타데이터로 실어 Trace를 구분하고, 앱 종료 시(FastAPI `lifespan`)
+  버퍼에 남은 span을 flush합니다. `LANGFUSE_PUBLIC_KEY`/`LANGFUSE_SECRET_KEY`를 비워두면
+  SDK가 자동으로 no-op(전송 없음)으로 동작해, 계정을 만들지 않아도 AI 기능 자체는 그대로
+  쓸 수 있습니다 — Coach 등이 LLM 실패 시 폴백하는 것과 같은 "관측 때문에 핵심 기능이 막히지
+  않는다"는 원칙입니다. Prompt Management/Evaluation(Langfuse의 나머지 기능)은 아직 도입하지
+  않았습니다.
 
 ## 배포 (Railway)
 
@@ -181,6 +191,10 @@ golf_knowledge (pgvector, RAG 전용)
 
 프론트는 빌드 시점에 `VITE_API_BASE_URL`을 백엔드 공개 URL로 굽고, 백엔드 `CORS_ORIGINS`는
 프론트 공개 URL을 허용하도록 설정되어 있습니다.
+
+`GolfMate`(backend) 서비스에 `LANGFUSE_PUBLIC_KEY`/`LANGFUSE_SECRET_KEY`를 설정하면 운영
+트래픽의 AI 호출도 Langfuse Cloud로 트레이싱됩니다 — 별도 서비스 추가 없이 환경변수만
+있으면 되고, 설정하지 않으면 트레이싱만 조용히 꺼집니다.
 
 ## 실행 방법
 

@@ -19,6 +19,7 @@ from openai import APIConnectionError, APIStatusError, APITimeoutError
 from sqlalchemy.orm import Session
 
 from app.ai.llm.client import get_coach_llm
+from app.ai.llm.observability import build_langfuse_config
 from app.ai.prompts.recommend.system import build_recommend_prompt
 from app.ai.recommend.parser import parse_recommend_response
 from app.ai.recommend.state import RecommendState
@@ -161,7 +162,8 @@ def run_recommend_graph(
             "difficulty": difficulty,
             "max_budget": max_budget,
             "preference_text": preference_text,
-        }
+        },
+        config=build_langfuse_config("recommend", user_id),
     )
     candidates_by_id = {c.id: c for c in (result.get("candidates") or [])}
     return {

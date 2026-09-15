@@ -3,9 +3,12 @@
 여기서는 앱 인스턴스 생성, 미들웨어 설정, 라우터 등록만 담당한다.
 비즈니스 로직은 services/, DB 접근은 repositories/, AI 로직은 ai/ 에 둔다.
 """
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.ai.llm.observability import flush_langfuse
 from app.api.routers import (
     auth,
     bet_commentary,
@@ -24,7 +27,16 @@ from app.core.config import get_settings
 
 settings = get_settings()
 
-app = FastAPI(title="GolfMate AI API", version="0.1.0")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    yield
+    # 컨테이너 종료 시 버퍼에 남아 아직 전송 안 된 Langfuse span을 강제로 flush한다
+    # (키가 없으면 no-op 클라이언트라 아무 일도 하지 않는다).
+    flush_langfuse()
+
+
+app = FastAPI(title="GolfMate AI API", version="0.1.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,

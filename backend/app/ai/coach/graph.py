@@ -23,6 +23,7 @@ from sqlalchemy.orm import Session
 from app.ai.coach.parser import parse_coach_response
 from app.ai.coach.state import GolfCoachState
 from app.ai.llm.client import get_coach_llm
+from app.ai.llm.observability import build_langfuse_config
 from app.ai.prompts.coach.system import build_coach_prompt
 from app.ai.rag.retriever import retrieve_knowledge
 from app.models.golf_knowledge import GolfKnowledge
@@ -230,5 +231,8 @@ def build_coach_graph(db: Session):
 
 def run_coach_graph(db: Session, user_id: int, question: str) -> dict[str, str]:
     graph = build_coach_graph(db)
-    result: GolfCoachState = graph.invoke({"user_id": user_id, "question": question})
+    result: GolfCoachState = graph.invoke(
+        {"user_id": user_id, "question": question},
+        config=build_langfuse_config("coach", user_id),
+    )
     return result["final_answer"]

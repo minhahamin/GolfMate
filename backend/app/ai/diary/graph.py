@@ -23,6 +23,7 @@ from sqlalchemy.orm import Session
 from app.ai.diary.parser import parse_diary_response
 from app.ai.diary.state import DiaryState
 from app.ai.llm.client import get_coach_llm
+from app.ai.llm.observability import build_langfuse_config
 from app.ai.prompts.diary.system import build_diary_prompt
 from app.models.diary import MOOD_MAX_LENGTH
 from app.models.round import Round
@@ -164,7 +165,8 @@ def build_diary_graph(db: Session):
 def run_diary_graph(db: Session, user_id: int, raw_text: str, round_id_hint: int | None) -> dict:
     graph = build_diary_graph(db)
     result: DiaryState = graph.invoke(
-        {"user_id": user_id, "raw_text": raw_text, "round_id_hint": round_id_hint}
+        {"user_id": user_id, "raw_text": raw_text, "round_id_hint": round_id_hint},
+        config=build_langfuse_config("diary", user_id),
     )
     return {
         "summary": result["summary"],

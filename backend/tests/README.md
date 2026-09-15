@@ -16,6 +16,9 @@
 - `test_golf_knowledge_rag.py` — Phase 5 RAG. 임베딩 차원 검증과 `retrieve_knowledge`가
   관련도 순으로 검색되는지 확인한다. 임베딩은 로컬 sentence-transformers를 실제로 호출한다
   (모킹하지 않음 — API 키/비용이 없는 로컬 연산이므로).
+- `test_observability.py` — Phase 10 Langfuse. 키를 설정하지 않아도 `get_langfuse_handler()`가
+  예외 없이 no-op으로 동작하는지, `build_langfuse_config`가 그래프 이름/user_id로 Trace를
+  구분하는 metadata를 만드는지 검증한다 (DB/네트워크 없음).
 - `conftest.py` — 위 테스트들이 공유하는 헬퍼: `register_and_get_token`, `auth_headers`,
   `seed_test_course`(홀 3개짜리 테스트 전용 코스 생성).
 
