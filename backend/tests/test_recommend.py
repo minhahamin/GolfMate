@@ -6,6 +6,7 @@
 from unittest.mock import MagicMock, patch
 
 from fastapi.testclient import TestClient
+from openai import APIConnectionError
 
 from app.core.database import SessionLocal
 from app.main import app
@@ -136,6 +137,34 @@ def test_recommend_llm_failure_returns_fallback(mock_get_llm):
     assert response.status_code == 200, response.text
     assert response.json()["recommendations"] == []
     assert "실패" in response.json()["summary"]
+
+
+@patch("app.ai.recommend.graph.get_coach_llm")
+def test_transient_llm_failure_is_retried_once(mock_get_llm):
+    """일시적 실패(연결 오류) 1회는 재시도해서 성공한다 — 무료 모델의 간헐적 실패 대응."""
+    course_id = _seed_recommend_course(region="재시도테스트지역", difficulty="초급")
+    mock_llm = MagicMock()
+    mock_llm.invoke.side_effect = [
+        APIConnectionError(request=MagicMock()),
+        MagicMock(content=_sample_response(course_id)),
+    ]
+    mock_llm.model_name = "test-model"
+    mock_get_llm.return_value = mock_llm
+
+    token, _ = register_and_get_token(client)
+
+    with patch("app.ai.recommend.graph.time.sleep", return_value=None):
+        response = client.post(
+            "/api/ai/recommend-courses",
+            headers=auth_headers(token),
+            json={"region": "재시도테스트지역"},
+        )
+
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert len(body["recommendations"]) == 1
+    assert body["recommendations"][0]["course"]["id"] == course_id
+    assert mock_llm.invoke.call_count == 2
 
 
 def test_max_budget_filters_out_expensive_courses():

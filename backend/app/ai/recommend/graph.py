@@ -38,6 +38,12 @@ FALLBACK_QUOTA_EXCEEDED = "AI 추천을 사용할 수 없습니다. OpenRouter �
 FALLBACK_AUTH_ERROR = "AI 추천 설정에 문제가 있습니다. OPENROUTER_API_KEY를 확인해주세요."
 FALLBACK_TIMEOUT = "AI 추천 생성이 시간 초과되었습니다. 잠시 후 다시 시도해주세요."
 
+# 무료 LLM(OpenRouter :free)은 간헐적으로 실패한다(즉시 5xx/연결 오류 등).
+# 후보가 있는데 첫 호출이 빨리 실패하면, 폴백으로 바로 확정하지 않고 1회만 재시도한다 —
+# 실측상 실패는 1초 내외에 확정되므로 재시도 1회는 프론트 타임아웃 안에 충분히 들어간다.
+RECOMMEND_LLM_MAX_ATTEMPTS = 2
+RECOMMEND_LLM_RETRY_DELAY_SECONDS = 2.0
+
 
 def _format_profile(profile: GolferProfile | None) -> str:
     if profile is None:
@@ -85,38 +91,88 @@ def build_recommend_graph(db: Session):
         )
 
         llm = get_coach_llm()
-        started = time.monotonic()
-        try:
-            response = llm.invoke(prompt)
-        except APITimeoutError:
-            logger.exception("recommend_llm_call_timeout user_id=%s", state.get("user_id"))
-            return {"summary": FALLBACK_TIMEOUT, "ranked": [], "error": "timeout"}
-        except APIConnectionError:
-            logger.exception("recommend_llm_call_connection_failed user_id=%s", state.get("user_id"))
-            return {"summary": FALLBACK_LLM_ERROR, "ranked": [], "error": "connection_error"}
-        except APIStatusError as exc:
-            logger.exception(
-                "recommend_llm_call_api_error user_id=%s status=%s", state.get("user_id"), exc.status_code
-            )
-            if exc.status_code == 429:
-                return {"summary": FALLBACK_RATE_LIMITED, "ranked": [], "error": "rate_limited"}
-            if exc.status_code == 402:
-                return {"summary": FALLBACK_QUOTA_EXCEEDED, "ranked": [], "error": "quota_exceeded"}
-            if exc.status_code == 401:
-                return {"summary": FALLBACK_AUTH_ERROR, "ranked": [], "error": "auth_error"}
-            return {"summary": FALLBACK_LLM_ERROR, "ranked": [], "error": f"api_error_{exc.status_code}"}
-        except Exception:
-            logger.exception("recommend_llm_call_failed user_id=%s", state.get("user_id"))
-            return {"summary": FALLBACK_LLM_ERROR, "ranked": [], "error": "llm_call_failed"}
+        user_id = state.get("user_id")
+        last_fallback: dict = {"summary": FALLBACK_LLM_ERROR, "ranked": [], "error": "llm_call_failed"}
 
-        logger.info(
-            "recommend_llm_call user_id=%s model=%s latency=%.2fs",
-            state.get("user_id"),
-            llm.model_name,
-            time.monotonic() - started,
-        )
-        parsed = parse_recommend_response(response.content)
-        return {"summary": parsed["summary"], "ranked": parsed["ranked"]}
+        for attempt in range(1, RECOMMEND_LLM_MAX_ATTEMPTS + 1):
+            started = time.monotonic()
+            try:
+                response = llm.invoke(prompt)
+            except APIStatusError as exc:
+                logger.exception(
+                    "recommend_llm_call_api_error user_id=%s status=%s attempt=%d",
+                    user_id,
+                    exc.status_code,
+                    attempt,
+                )
+                if exc.status_code == 401:
+                    return {"summary": FALLBACK_AUTH_ERROR, "ranked": [], "error": "auth_error"}
+                if exc.status_code == 402:
+                    return {"summary": FALLBACK_QUOTA_EXCEEDED, "ranked": [], "error": "quota_exceeded"}
+                if exc.status_code == 429:
+                    last_fallback = {
+                        "summary": FALLBACK_RATE_LIMITED,
+                        "ranked": [],
+                        "error": "rate_limited",
+                    }
+                elif 500 <= (exc.status_code or 0):
+                    last_fallback = {
+                        "summary": FALLBACK_LLM_ERROR,
+                        "ranked": [],
+                        "error": f"api_error_{exc.status_code}",
+                    }
+                else:
+                    return {
+                        "summary": FALLBACK_LLM_ERROR,
+                        "ranked": [],
+                        "error": f"api_error_{exc.status_code}",
+                    }
+            except APITimeoutError:
+                logger.exception("recommend_llm_call_timeout user_id=%s attempt=%d", user_id, attempt)
+                last_fallback = {"summary": FALLBACK_TIMEOUT, "ranked": [], "error": "timeout"}
+            except APIConnectionError:
+                logger.exception(
+                    "recommend_llm_call_connection_failed user_id=%s attempt=%d", user_id, attempt
+                )
+                last_fallback = {"summary": FALLBACK_LLM_ERROR, "ranked": [], "error": "connection_error"}
+            except Exception:
+                logger.exception("recommend_llm_call_failed user_id=%s attempt=%d", user_id, attempt)
+                last_fallback = {"summary": FALLBACK_LLM_ERROR, "ranked": [], "error": "llm_call_failed"}
+            else:
+                logger.info(
+                    "recommend_llm_call user_id=%s model=%s latency=%.2fs attempt=%d",
+                    user_id,
+                    llm.model_name,
+                    time.monotonic() - started,
+                    attempt,
+                )
+                try:
+                    parsed = parse_recommend_response(response.content)
+                except Exception:
+                    logger.exception(
+                        "recommend_llm_unparseable user_id=%s attempt=%d", user_id, attempt
+                    )
+                    last_fallback = {
+                        "summary": FALLBACK_LLM_ERROR,
+                        "ranked": [],
+                        "error": "unparseable_response",
+                    }
+                else:
+                    if parsed["ranked"] or parsed["summary"]:
+                        return {"summary": parsed["summary"], "ranked": parsed["ranked"]}
+                    logger.warning(
+                        "recommend_llm_empty_result user_id=%s attempt=%d", user_id, attempt
+                    )
+                    last_fallback = {
+                        "summary": FALLBACK_LLM_ERROR,
+                        "ranked": [],
+                        "error": "unparseable_response",
+                    }
+
+            if attempt < RECOMMEND_LLM_MAX_ATTEMPTS:
+                time.sleep(RECOMMEND_LLM_RETRY_DELAY_SECONDS)
+
+        return last_fallback
 
     def recommendation_validator(state: RecommendState) -> dict:
         candidate_ids = {c.id for c in (state.get("candidates") or [])}
