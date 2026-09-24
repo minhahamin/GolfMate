@@ -5,6 +5,8 @@
 > 사용자 데이터가 쌓일수록 더 정확해지는 서비스를 목표로 한 개인 포트폴리오 프로젝트입니다.
 
 **🔗 라이브 데모**: https://golfmate-frontend-production.up.railway.app
+
+https://cloud.langfuse.com/project/cmu2qjg0h01z0ad0ck2ewo10q/traces
 (로그인 화면의 "데모 계정으로 체험하기" 버튼으로 가입 없이 바로 둘러볼 수 있습니다 —
 라운드 8개가 미리 채워져 있어 통계/차트/AI 코치 분석이 바로 보입니다.)
 
