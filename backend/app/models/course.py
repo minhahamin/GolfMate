@@ -6,7 +6,7 @@ API/DB로 교체될 때도 이 테이블 구조(및 CourseHole)는 그대로 유
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, Float, Integer, String, Text, func
+from sqlalchemy import Boolean, DateTime, Float, Integer, String, Text, false, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
@@ -28,13 +28,17 @@ class Course(Base):
 
     # Phase 7 골프장 추천용 필드 — search_service가 이 값들로 후보를 필터링하고,
     # LLM에게는 필터링된 후보만 넘겨 실존하지 않는 골프장을 추천하지 않게 한다.
-    difficulty: Mapped[str] = mapped_column(String(20), nullable=False, default="중급")
+    # 실제 골프장 공공데이터에는 난이도/그린피가 없어 NULL(정보 없음)을 허용한다.
+    difficulty: Mapped[str | None] = mapped_column(String(20), nullable=True)
     green_fee_avg: Mapped[int | None] = mapped_column(Integer, nullable=True)
     tags: Mapped[str | None] = mapped_column(String(255), nullable=True)  # 콤마 구분, 예: "바다전망,링크스"
 
     # Phase 8 AI 캐디용 — 실제 지역 좌표(Open-Meteo 등 외부 날씨 API 호출에 쓴다, 키 불필요).
     latitude: Mapped[float | None] = mapped_column(Float, nullable=True)
     longitude: Mapped[float | None] = mapped_column(Float, nullable=True)
+
+    # seed_courses.py의 가상 코스 표시 — 추천 후보에서 제외한다(데모 라운드 기록이 FK로 묶여 있어 삭제는 못 한다).
+    is_demo: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default=false())
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 

@@ -49,7 +49,7 @@ export default function Courses() {
               <p className="font-display text-lg text-ink">{course.name}</p>
               <p className="text-sm text-ink-soft">{course.region}</p>
               <p className="mt-3 font-mono text-sm text-ink-soft">
-                {course.holes_count}홀, 파{course.par} · 난이도 {course.difficulty}
+                {course.holes_count}홀, 파{course.par}{course.difficulty && ` · 난이도 ${course.difficulty}`}
               </p>
               {course.green_fee_avg != null && (
                 <p className="mt-1 font-mono text-sm text-ink-soft">

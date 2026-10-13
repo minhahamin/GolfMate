@@ -12,7 +12,7 @@ export interface Course {
   description: string | null;
   holes_count: number;
   par: number;
-  difficulty: string;
+  difficulty: string | null;
   green_fee_avg: number | null;
   tags: string | null;
 }

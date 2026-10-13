@@ -44,6 +44,9 @@ FALLBACK_TIMEOUT = "AI 추천 생성이 시간 초과되었습니다. 잠시 후
 RECOMMEND_LLM_MAX_ATTEMPTS = 2
 RECOMMEND_LLM_RETRY_DELAY_SECONDS = 2.0
 
+# 전국 골프장(500여 곳)을 전부 프롬프트에 넣을 수 없어 조건에 맞는 후보 중 무작위로 이 수만큼만 넘긴다.
+MAX_CANDIDATES = 30
+
 
 def _format_profile(profile: GolferProfile | None) -> str:
     if profile is None:
@@ -61,7 +64,10 @@ def _format_candidates(candidates: list[Course]) -> str:
     for c in candidates:
         fee = f"{c.green_fee_avg:,}원" if c.green_fee_avg is not None else "가격 정보 없음"
         tags = c.tags or "태그 없음"
-        lines.append(f"- id={c.id} {c.name} ({c.region}) 난이도:{c.difficulty} 평균그린피:{fee} 특징:{tags}")
+        difficulty = c.difficulty or "정보 없음"
+        lines.append(
+            f"- id={c.id} {c.name} ({c.region}) {c.holes_count}홀 난이도:{difficulty} 평균그린피:{fee} 특징:{tags}"
+        )
     return "\n".join(lines)
 
 
@@ -76,6 +82,7 @@ def build_recommend_graph(db: Session):
             region=state.get("region"),
             difficulty=state.get("difficulty"),
             max_budget=state.get("max_budget"),
+            limit=MAX_CANDIDATES,
         )
         return {"candidates": candidates}
 

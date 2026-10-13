@@ -110,7 +110,7 @@ export default function CourseRecommend() {
                     </p>
                   </div>
                   <p className="text-sm text-ink-soft">
-                    {course.region} · 난이도 {course.difficulty}
+                    {course.region}{course.difficulty && ` · 난이도 ${course.difficulty}`}
                   </p>
                   <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-ink-soft">{reason}</p>
                 </div>

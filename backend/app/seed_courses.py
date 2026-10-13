@@ -1,6 +1,7 @@
-"""Mock 골프장 시드 스크립트.
+"""가상(데모) 골프장 시드 스크립트.
 
-실제 골프장 API 연동 전까지 사용할 가상의 코스 데이터를 넣는다.
+데모 계정의 라운드 기록(홀별 파/거리 포함)용 가상 코스를 넣는다. is_demo=True라 AI 추천
+후보에서는 제외된다. 실제 골프장은 seed_real_courses.py가 넣는다.
 이미 같은 이름의 코스가 있으면 건너뛴다 (여러 번 실행해도 안전).
 
 Phase 7부터 difficulty/green_fee_avg/tags를 채워, course_repository.search가 이 값으로
@@ -150,6 +151,7 @@ def run() -> None:
             if existing is not None:
                 # Phase 7/8 이전에 만들어진 코스는 새 필드가 비어있을 수 있어, 그 필드만
                 # 멱등적으로 채워 넣는다 (기존 라운드 데이터를 건드리지 않음).
+                existing.is_demo = True
                 existing.difficulty = course_data["difficulty"]
                 existing.green_fee_avg = course_data["green_fee_avg"]
                 existing.tags = course_data["tags"]
@@ -163,6 +165,7 @@ def run() -> None:
                 region=course_data["region"],
                 address=course_data["address"],
                 description=course_data["description"],
+                is_demo=True,
                 holes_count=18,
                 par=sum(HOLE_PARS),
                 difficulty=course_data["difficulty"],

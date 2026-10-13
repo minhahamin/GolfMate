@@ -24,7 +24,7 @@ export default function CourseDetail() {
       {course.description && <p className="mt-4 text-sm text-ink-soft">{course.description}</p>}
 
       <p className="mt-4 font-mono text-sm text-ink-soft">
-        {course.holes_count}홀, 파{course.par} · 난이도 {course.difficulty}
+        {course.holes_count}홀, 파{course.par}{course.difficulty && ` · 난이도 ${course.difficulty}`}
         {course.green_fee_avg != null && ` · 평균 그린피 ${course.green_fee_avg.toLocaleString()}원`}
       </p>
       {course.tags && (

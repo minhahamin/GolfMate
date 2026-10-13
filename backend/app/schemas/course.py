@@ -20,7 +20,7 @@ class CourseRead(BaseModel):
     description: str | None = None
     holes_count: int
     par: int
-    difficulty: str
+    difficulty: str | None = None
     green_fee_avg: int | None = None
     tags: str | None = None
 
